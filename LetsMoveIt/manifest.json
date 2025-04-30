@@ -1,7 +1,7 @@
 ﻿{
   "Name": "Let's Move It",
   "Author": "Exblosis",
-  "Version": "0.6.7",
+  "Version": "0.6.10",
   "Description": "Move everything with the press of a button.",
   "UniqueID": "Exblosis.LetsMoveIt",
   "EntryDll": "LetsMoveIt.dll",
