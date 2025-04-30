@@ -1,4 +1,4 @@
-## Mods
+﻿## Mods
 
 **Let's Move It** &nbsp; »[Nexus](https://www.nexusmods.com/stardewvalley/mods/20943)«
 
@@ -20,9 +20,9 @@
 | `de` \| Deutsch   | [✔️](LetsMoveIt/i18n/de.json)      |
 | `en` \| Englich   | [✔️](LetsMoveIt/i18n/default.json) |
 | `es` \| Español   | [❌](LetsMoveIt/i18n)              |
-| `fr` \| Français  | [✔️⚠️](LetsMoveIt/i18n/fr.json)      |
+| `fr` \| Français  | [✔️⚠️](LetsMoveIt/i18n/fr.json)    |
 | `hu` \| Magyar    | [❌](LetsMoveIt/i18n)              |
-| `it` \| Italiano  | [❌](LetsMoveIt/i18n)              |
+| `it` \| Italiano  | [✔️](LetsMoveIt/i18n/it.json)      |
 | `ja` \| 日本語     | [❌](LetsMoveIt/i18n)              |
 | `ko` \| 한국어     | [❌](LetsMoveIt/i18n)              |
 | `pt` \| Português | [❌](LetsMoveIt/i18n)              |
