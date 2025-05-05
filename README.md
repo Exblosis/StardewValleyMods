@@ -24,7 +24,7 @@
 | `hu` \| Magyar    | [❌](LetsMoveIt/i18n)              |
 | `it` \| Italiano  | [✔️](LetsMoveIt/i18n/it.json)      |
 | `ja` \| 日本語     | [❌](LetsMoveIt/i18n)              |
-| `ko` \| 한국어     | [❌](LetsMoveIt/i18n)              |
+| `ko` \| 한국어     | [✔️](LetsMoveIt/i18n/ko.json)      |
 | `pt` \| Português | [❌](LetsMoveIt/i18n)              |
 | `ru` \| Русский   | [✔️](LetsMoveIt/i18n/ru.json)      |
 | `tr` \| Türkçe    | [❌](LetsMoveIt/i18n)              |
