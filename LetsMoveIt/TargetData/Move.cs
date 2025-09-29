@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Locations;
@@ -79,6 +80,11 @@ namespace LetsMoveIt.TargetData
                         location.objects.Remove(tile);
                     }
                     location.objects.Add(tile, sObject);
+                    if (sObject.lightSource is not null)
+                    {
+                    TargetLocation.removeLightSource(sObject.lightSource.Id);
+                    sObject.reloadSprite();
+                    }
                     TargetObject = null;
                 }
                 else

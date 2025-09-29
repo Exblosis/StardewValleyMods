@@ -50,8 +50,12 @@ namespace LetsMoveIt.TargetData
                 TargetLocation.animals.Remove(farmAnimal.myID.Value);
                 TargetObject = null;
             }
-            else if (TargetObject is SObject)
+            else if (TargetObject is SObject sObject)
             {
+                if (sObject.lightSource is not null)
+                {
+                    TargetLocation.removeLightSource(sObject.lightSource.Id);
+                }
                 TargetLocation.objects.Remove(TilePosition);
                 TargetObject = null;
             }
