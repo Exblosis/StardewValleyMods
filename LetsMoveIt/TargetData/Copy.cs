@@ -93,25 +93,40 @@ namespace LetsMoveIt.TargetData
                 }
                 else
                 {
-                    SObject sObjectCopy;
-                    if (sObject.bigCraftable.Value)
+                    SObject? sObjectCopy = sObject.getOne() as SObject;
+                    if (sObjectCopy is not null)
                     {
-                        sObjectCopy = new(tile, sObject.ItemId, sObject.IsRecipe);
-                    }
-                    else
-                    {
-                        sObjectCopy = new(sObject.ItemId, sObject.Stack, sObject.IsRecipe, sObject.Price, sObject.Quality);
-                    }
-                    if (sObject.isPlaceable())
-                    {
-                        sObjectCopy.placementAction(location, (int)tile.X * 64, (int)tile.Y * 64, Game1.player);
-                    }
-                    else
-                    {
-                        sObjectCopy.MinutesUntilReady = sObject.MinutesUntilReady;
-                        sObjectCopy.IsSpawnedObject = sObject.IsSpawnedObject;
-                        location.objects.Add(tile, sObjectCopy);
-                        location.playSound("woodyStep", tile);
+                        //if (sObject.bigCraftable.Value)
+                        //{
+                        //    sObjectCopy = new(tile, sObject.ItemId, sObject.IsRecipe);
+                        //}
+                        //else
+                        //{
+                        //    sObjectCopy = new(sObject.ItemId, sObject.Stack, sObject.IsRecipe, sObject.Price, sObject.Quality);
+                        //}
+                        if (sObject.isPlaceable())
+                        {
+                            sObjectCopy.placementAction(location, (int)tile.X * 64, (int)tile.Y * 64, Game1.player);
+                        }
+                        else
+                        {
+                            sObjectCopy.MinutesUntilReady = sObject.MinutesUntilReady;
+                            sObjectCopy.IsSpawnedObject = sObject.IsSpawnedObject;
+                            location.objects.Add(tile, sObjectCopy);
+                            location.playSound("woodyStep", tile);
+                        }
+                        if (sObject.heldObject.Value is not null)
+                        {
+                            location.objects.TryGetValue(tile, out var obj);
+                            if (obj is Fence fence)
+                            {
+                                fence.performObjectDropInAction(sObject.heldObject.Value.getOne(), false, Game1.player);
+                            }
+                            else
+                            {
+                                obj.performObjectDropInAction(sObject.heldObject.Value.getOne(), false, Game1.player);
+                            }
+                        }
                     }
                 }
             }

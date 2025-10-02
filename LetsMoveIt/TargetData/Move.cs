@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Locations;
@@ -82,8 +81,22 @@ namespace LetsMoveIt.TargetData
                     location.objects.Add(tile, sObject);
                     if (sObject.lightSource is not null)
                     {
-                    TargetLocation.removeLightSource(sObject.lightSource.Id);
-                    sObject.reloadSprite();
+                        TargetLocation.removeLightSource(sObject.lightSource.Id);
+                        sObject.reloadSprite();
+                    }
+                    if (TargetObject is Fence fence)
+                    {
+                        if (fence.heldObject.Value is Torch)
+                        {
+                            location.objects.TryGetValue(tile, out var obj);
+                            Torch? torch = obj.heldObject.Value as Torch;
+                            if (torch is not null)
+                            {
+                                TargetLocation.removeLightSource(torch.lightSource.Id);
+                                torch.Location = location;
+                                torch.initializeLightSource(tile);
+                            }
+                        }
                     }
                     TargetObject = null;
                 }

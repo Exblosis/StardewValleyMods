@@ -1,12 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Linq;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
-using xTile;
 using SObject = StardewValley.Object;
 
 namespace LetsMoveIt.TargetData

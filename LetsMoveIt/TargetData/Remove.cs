@@ -56,6 +56,18 @@ namespace LetsMoveIt.TargetData
                 {
                     TargetLocation.removeLightSource(sObject.lightSource.Id);
                 }
+                if (TargetObject is Fence fence)
+                {
+                    if (fence.heldObject.Value is Torch)
+                    {
+                        TargetLocation.objects.TryGetValue(TilePosition, out var obj);
+                        Torch? torch = obj.heldObject.Value as Torch;
+                        if (torch is not null)
+                        {
+                            TargetLocation.removeLightSource(torch.lightSource.Id);
+                        }
+                    }
+                }
                 TargetLocation.objects.Remove(TilePosition);
                 TargetObject = null;
             }
