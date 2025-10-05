@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Locations;
@@ -178,7 +179,10 @@ namespace LetsMoveIt.TargetData
                     }
                 }
             }
-            catch { }
+            catch (System.Exception ex)
+            {
+                Monitor.Log($"Fehler beim Rendern: {ex}", LogLevel.Error);
+            }
         }
     }
 }

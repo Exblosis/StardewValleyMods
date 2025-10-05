@@ -25,10 +25,28 @@ namespace LetsMoveIt.TargetData
         public Vector2 TileOffset;
         private readonly HashSet<Vector2> BoundingBoxTile = [];
 
+        //public Target(GameLocation location, Vector2 tile, Point map)
+        //{
+        //    Get(location, tile, map);
+        //}
         public Target(GameLocation location, Vector2 tile, Point map)
         {
-            Get(location, tile, map);
+            Initialize(location, tile, map);
         }
+
+        public Target(GameLocation location, Vector2 tile, object obj)
+        {
+            TargetObject = obj;
+            TargetLocation = location;
+            TilePosition = tile;
+        }
+
+        private void Initialize(GameLocation location, Vector2 tile, Point map)
+        {
+            TargetLocation = location;
+            TilePosition = tile;
+        }
+
         /// <summary>Only for set values</summary>
         public static void Init(ModConfig config, IModHelper helper, IMonitor monitor)
         {
@@ -37,85 +55,90 @@ namespace LetsMoveIt.TargetData
             Monitor = monitor;
         }
 
-        //public static void ButtonAction(GameLocation location, Vector2 tile)
+        public bool IsOccupied(GameLocation location, Vector2 tile)
+        {
+            if (IsTileOccupied(location, tile))
+                return true;
+
+            if (BoundingBoxTile.Count > 0)
+            {
+                return BoundingBoxTile.Any(t => IsTileOccupied(location, t));
+            }
+            
+            return false;
+        }
+
+        private bool IsTileOccupied(GameLocation location, Vector2 tile)
+        {
+            if (!location.isTilePassable(tile) || !location.isTileOnMap(tile) ||
+                location.isTileHoeDirt(tile) || location.isCropAtTile((int)tile.X, (int)tile.Y) ||
+                location.IsTileBlockedBy(tile, ignorePassables: CollisionMask.All))
+            {
+                if (TargetObject is Crop && location.isTileHoeDirt(tile))
+                    return false;
+
+                if (TargetObject is SObject sObject && sObject.IsTapper())
+                {
+                    if (location.terrainFeatures.TryGetValue(tile, out var tf) && tf is Tree)
+                        return false;
+                    return true;
+                }
+
+                return true;
+            }
+            return false;
+        }
+
+        //public bool IsOccupied(GameLocation location, Vector2 tile)
         //{
-        //    if (Config.ModKey == SButton.None)
-        //        return;
-        //    if (Helper.Input.IsDown(Config.ModKey))
+        //    bool occupied = false;
+        //    if (!location.isTilePassable(tile) || !location.isTileOnMap(tile) || location.isTileHoeDirt(tile) || location.isCropAtTile((int)tile.X, (int)tile.Y) || location.IsTileBlockedBy(tile, ignorePassables: CollisionMask.All))
         //    {
-        //        Get(location, tile, Mod1.GetGlobalMousePosition());
-        //        return;
-        //    }
-        //    if (TargetObject is not null)
-        //    {
-        //        Helper.Input.Suppress(Config.MoveKey);
-        //        bool overwriteTile = Helper.Input.IsDown(Config.OverwriteKey);
-        //        if (IsOccupied(location, tile) && !overwriteTile)
+        //        if (TargetObject is Crop && location.isTileHoeDirt(tile))
         //        {
-        //            Game1.playSound("cancel");
-        //            return;
+        //            occupied = false;
         //        }
-        //        if (Config.CopyMode)
+        //        else if (TargetObject is SObject sObject && sObject.IsTapper())
         //        {
-        //            CopyTo(location, tile, overwriteTile);
+        //            if (location.terrainFeatures.TryGetValue(tile, out var tf) && tf is Tree)
+        //            {
+        //                occupied = false;
+        //            }
+        //            else
+        //            {
+        //                occupied = true;
+        //            }
         //        }
         //        else
         //        {
-        //            MoveTo(location, tile, overwriteTile);
+        //            occupied = true;
         //        }
         //    }
+        //    if (BoundingBoxTile.Count != 0)
+        //    {
+        //        BoundingBoxTile.ToList().ForEach(t =>
+        //        {
+        //            if (!location.isTilePassable(t) || !location.isTileOnMap(t) || location.isTileHoeDirt(t) || location.isCropAtTile((int)t.X, (int)t.Y) || location.IsTileBlockedBy(t, ignorePassables: CollisionMask.All))
+        //            {
+        //                if (BoundingBoxTile.Count == 1)
+        //                {
+        //                    if (TargetObject is Bush bush && bush.size.Value == 3 && location.getObjectAtTile((int)tile.X, (int)tile.Y) is IndoorPot)
+        //                    {
+        //                        occupied = false;
+        //                    }
+        //                    else
+        //                    {
+        //                        occupied = true;
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    occupied = true;
+        //                }
+        //            }
+        //        });
+        //    }
+        //    return occupied;
         //}
-
-        public bool IsOccupied(GameLocation location, Vector2 tile)
-        {
-            bool occupied = false;
-            if (!location.isTilePassable(tile) || !location.isTileOnMap(tile) || location.isTileHoeDirt(tile) || location.isCropAtTile((int)tile.X, (int)tile.Y) || location.IsTileBlockedBy(tile, ignorePassables: CollisionMask.All))
-            {
-                if (TargetObject is Crop && location.isTileHoeDirt(tile))
-                {
-                    occupied = false;
-                }
-                else if (TargetObject is SObject sObject && sObject.IsTapper())
-                {
-                    if (location.terrainFeatures.TryGetValue(tile, out var tf) && tf is Tree)
-                    {
-                        occupied = false;
-                    }
-                    else
-                    {
-                        occupied = true;
-                    }
-                }
-                else
-                {
-                    occupied = true;
-                }
-            }
-            if (BoundingBoxTile.Count != 0)
-            {
-                BoundingBoxTile.ToList().ForEach(t =>
-                {
-                    if (!location.isTilePassable(t) || !location.isTileOnMap(t) || location.isTileHoeDirt(t) || location.isCropAtTile((int)t.X, (int)t.Y) || location.IsTileBlockedBy(t, ignorePassables: CollisionMask.All))
-                    {
-                        if (BoundingBoxTile.Count == 1)
-                        {
-                            if (TargetObject is Bush bush && bush.size.Value == 3 && location.getObjectAtTile((int)tile.X, (int)tile.Y) is IndoorPot)
-                            {
-                                occupied = false;
-                            }
-                            else
-                            {
-                                occupied = true;
-                            }
-                        }
-                        else
-                        {
-                            occupied = true;
-                        }
-                    }
-                });
-            }
-            return occupied;
-        }
     }
 }

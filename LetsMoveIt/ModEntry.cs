@@ -17,7 +17,7 @@ namespace LetsMoveIt
     {
         private static ModConfig Config = null!;
 
-        private static Dictionary<Vector2, Target> SelectedTargets = [];
+        private static Dictionary<Vector2, List<Target>> SelectedTargets = [];
         private static Target? OneTarget;
 
         private static bool Select = false;
@@ -76,14 +76,14 @@ namespace LetsMoveIt
             }
             if (SelectedTargets.Count > 0)
             {
-                foreach (Target t in SelectedTargets.Values)
+                foreach (var targetList in SelectedTargets.Values)
                 {
-                    if (t.TargetObject is null)
+                    foreach (var t in targetList)
                     {
-                        SelectedTargets.Remove(t.TilePosition);
-                        return;
+                        if (t.TargetObject is null)
+                            continue;
+                        t.Render(e.SpriteBatch, Game1.currentLocation, Game1.currentCursorTile + (t.TilePosition - new Vector2(SelectedArea.X, SelectedArea.Y)));
                     }
-                    t.Render(e.SpriteBatch, Game1.currentLocation, Game1.currentCursorTile + (t.TilePosition - new Vector2(SelectedArea.X, SelectedArea.Y)));
                 }
             }
         }
@@ -143,15 +143,21 @@ namespace LetsMoveIt
                     select = I18n.Dialogue("Remove.Select2");
                 if (OneTarget?.TargetObject is Building)
                     select = I18n.Dialogue("Remove.Select3");
-                Game1.player.currentLocation.createQuestionDialogue(I18n.Dialogue("Remove", new { select }), Mod1.YesNoResponses(), (Farmer f, string response) =>
+                Game1.player.currentLocation.createQuestionDialogue(I18n.Dialogue("Remove", new { select }), Mod1.YesNoResponses(), (f, response) =>
                 {
                     if (response == "Yes")
                     {
                         OneTarget?.Remove();
-                        foreach (Target t in SelectedTargets.Values)
+                        foreach (var targetList in SelectedTargets.Values)
                         {
-                            t.Remove();
+                            foreach (var t in targetList)
+                            {
+                                if (t.TargetObject is null)
+                                    continue;
+                                t.Remove();
+                            }
                         }
+                        SelectedTargets.Clear();
                         Game1.playSound("trashcan");
                     }
                 });
@@ -176,9 +182,10 @@ namespace LetsMoveIt
                     else
                     {
                         Helper.Input.Suppress(Config.MoveKey);
-                        OneTarget = new Target(Game1.currentLocation, Game1.currentCursorTile, Mod1.GetGlobalMousePosition());
-                        if (OneTarget.TargetObject is null)
+                        OneTarget = Target.Get(Game1.currentLocation, Game1.currentCursorTile, Mod1.GetGlobalMousePosition());
+                        if (OneTarget?.TargetObject is null)
                         {
+                            //Monitor.Log("NULL", LogLevel.Debug); // <<< List NetFields >>> <<< debug >>>
                             OneTarget = null;
                             return;
                         }
@@ -209,10 +216,13 @@ namespace LetsMoveIt
                 {
                     Helper.Input.Suppress(Config.MoveKey);
                     bool overwriteTile = Helper.Input.IsDown(Config.OverwriteKey);
-                    foreach (Target t in SelectedTargets.Values)
+                    List<Target> toRemove = [];
+                    foreach (var targetList in SelectedTargets.Values)
                     {
-                        if (t.TargetObject is not null)
+                        foreach (var t in targetList)
                         {
+                            if (t.TargetObject is null)
+                                continue;
                             if (t.IsOccupied(Game1.currentLocation, Game1.currentCursorTile + (t.TilePosition - new Vector2(SelectedArea.X, SelectedArea.Y))) && !overwriteTile)
                             {
                                 continue;
@@ -225,8 +235,20 @@ namespace LetsMoveIt
                             {
                                 t.MoveTo(Game1.currentLocation, Game1.currentCursorTile + (t.TilePosition - new Vector2(SelectedArea.X, SelectedArea.Y)), overwriteTile);
                             }
+                            if (t.TargetObject is null)
+                                toRemove.Add(t);
                         }
+                        foreach (var t in toRemove)
+                            targetList.Remove(t);
                     }
+                    var emptyKeys = SelectedTargets
+                        .Where(pair => pair.Value.Count == 0)
+                        .Select(pair => pair.Key)
+                        .ToList();
+
+                    foreach (var key in emptyKeys)
+                        SelectedTargets.Remove(key);
+
                     PlaySound();
                 }
             }
@@ -239,6 +261,7 @@ namespace LetsMoveIt
                 Select = false;
                 if (Helper.Input.IsDown(Config.ModKey) && Config.MultiSelect)
                 {
+                    var seenObjects = new HashSet<object>();
                     for (int x = 0; x < SelectedArea.Width; x++)
                     {
                         for (int y = 0; y < SelectedArea.Height; y++)
@@ -246,17 +269,27 @@ namespace LetsMoveIt
                             int xTile = SelectedArea.X + x;
                             int yTile = SelectedArea.Y + y;
                             Vector2 tile = new(xTile, yTile);
-                            Target currentTarget = new(Game1.currentLocation, tile, Game1.GlobalToLocal(tile).ToPoint());
-                            if (currentTarget.TargetObject is not null)
+
+                            // Sammle alle Targets auf diesem Tile
+                            List<Target> targetsOnTile = Target.GetAllTargets(Game1.currentLocation, tile, Game1.GlobalToLocal(tile).ToPoint());
+                            if (targetsOnTile.Count > 0)
                             {
-                                SelectedTargets.TryAdd(currentTarget.TilePosition, currentTarget);
+                                if (!SelectedTargets.ContainsKey(tile))
+                                    SelectedTargets[tile] = [];
+                                foreach (var t in targetsOnTile)
+                                {
+                                    // Nur hinzufügen, wenn das selbe Objekt nicht doppelt vorkommt
+                                    if (t.TargetObject is not null && seenObjects.Add(t.TargetObject))
+                                        SelectedTargets[tile].Add(t);
+                                }
                             }
                         }
                     }
                     if (SelectedTargets.Count > 0)
                     {
-                        Vector2 min = new(SelectedTargets.Keys.Min(x => x.X), SelectedTargets.Keys.Min(y => y.Y));
-                        Vector2 max = new(SelectedTargets.Keys.Max(x => x.X), SelectedTargets.Keys.Max(y => y.Y));
+                        var allKeys = SelectedTargets.Keys;
+                        Vector2 min = new(allKeys.Min(x => x.X), allKeys.Min(y => y.Y));
+                        Vector2 max = new(allKeys.Max(x => x.X), allKeys.Max(y => y.Y));
                         SelectedArea = new Rectangle((int)min.X, (int)min.Y, (int)(max.X - min.X), (int)(max.Y - min.Y));
                         PlaySound();
                     }
