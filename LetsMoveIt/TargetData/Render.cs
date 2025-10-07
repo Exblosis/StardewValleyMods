@@ -21,7 +21,6 @@ namespace LetsMoveIt.TargetData
                     if (TargetObject is GiantCrop giantCrop)
                     {
                         var data = giantCrop.GetData();
-                        //Monitor.Log("Data: " + data.TileSize, LogLevel.Debug); // <<< debug >>>
                         for (int x_offset = 0; x_offset < data.TileSize.X; x_offset++)
                         {
                             for (int y_offset = 0; y_offset < data.TileSize.Y; y_offset++)
@@ -60,10 +59,13 @@ namespace LetsMoveIt.TargetData
                     }
                     if (TargetObject is Bush bush)
                     {
-                        Texture2D texture = Game1.content.Load<Texture2D>("TileSheets\\bushes");
-                        SpriteEffects flipped = bush.flipped.Value ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
-                        int tileOffset = (bush.sourceRect.Height / 16 - 1) * -64;
-                        spriteBatch.Draw(texture, Mod1.LocalTile(tile, y: tileOffset), bush.sourceRect.Value, Color.White * 0.6f, 0f, Vector2.Zero, 4f, flipped, 1);
+                        if (!bush.modData.Any())
+                        {
+                            Texture2D texture = Game1.content.Load<Texture2D>("TileSheets\\bushes");
+                            SpriteEffects flipped = bush.flipped.Value ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+                            int tileOffset = (bush.sourceRect.Height / 16 - 1) * -64;
+                            spriteBatch.Draw(texture, Mod1.LocalTile(tile, y: tileOffset), bush.sourceRect.Value, Color.White * 0.6f, 0f, Vector2.Zero, 4f, flipped, 1);
+                        }
                     }
                     else if (TargetObject is Flooring flooring)
                     {

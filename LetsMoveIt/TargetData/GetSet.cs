@@ -20,6 +20,7 @@ namespace LetsMoveIt.TargetData
             {
                 foreach (var c in location.characters)
                 {
+                    // bessere Methode um NPC zu selecten finden
                     //var bb = c.GetBoundingBox();
                     //bb = new Rectangle(bb.Location - new Point(0, 64), new Point(c.Sprite.getWidth() * 4, c.Sprite.getHeight() * 4));
                     if (c.GetBoundingBox().Contains(map))
@@ -58,9 +59,6 @@ namespace LetsMoveIt.TargetData
             {
                 if ((obj is IndoorPot pot) && Config.MoveCropWithoutIndoorPot)
                 {
-                    //pot.NetFields.GetFields().ToList().ForEach(l =>
-                    //    Monitor.Log(l.Name + ": " + l, LogLevel.Debug) // <<< List NetFields >>> <<< debug >>>
-                    //);
                     if (pot.bush.Value is not null && Config.EnableMoveBush)
                     {
                         var b = pot.bush.Value;
@@ -169,7 +167,7 @@ namespace LetsMoveIt.TargetData
         {
             var targets = new List<Target>();
 
-            // Charaktere (NPCs, Tiere, Spieler)
+            // Charaktere (NPCs, Tiere, Spieler) funktioniert nicht bei MultiSelect
             //if (Config.EnableMoveEntity)
             //{
             //    foreach (var c in location.characters)
@@ -201,7 +199,8 @@ namespace LetsMoveIt.TargetData
                 else if ((tf is Tree) && !Config.EnableMoveTree) { }
                 else if ((tf is FruitTree) && !Config.EnableMoveFruitTree) { }
                 else if ((tf is Grass) && !Config.EnableMoveGrass) { }
-                else if ((tf is HoeDirt) && !Config.EnableMoveFarmland || Config.MoveCropWithoutTile) { }
+                else if ((tf is HoeDirt) && !Config.EnableMoveFarmland) { }
+                else if ((tf is HoeDirt hoeDirt) && (hoeDirt?.crop is not null) && Config.MoveCropWithoutTile) { }
                 else if ((tf is Bush) && !Config.EnableMoveBush) { }
                 else
                 {
