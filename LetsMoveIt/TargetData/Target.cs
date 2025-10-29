@@ -3,7 +3,6 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
-using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using SObject = StardewValley.Object;
 
@@ -12,7 +11,6 @@ namespace LetsMoveIt.TargetData
     internal partial class Target
     {
         private static ModConfig Config = null!;
-        private static IModHelper Helper = null!;
         private static IMonitor Monitor = null!;
 
         public string? Name;
@@ -23,35 +21,25 @@ namespace LetsMoveIt.TargetData
         public GameLocation TargetLocation = null!;
         public Vector2 TilePosition;
         public Vector2 TileOffset;
+
+        /// <summary>Relative to Render(tile), used by ResourceClump and TerrainFeature.</summary>
         private readonly HashSet<Vector2> BoundingBoxTile = [];
 
-        //public Target(GameLocation location, Vector2 tile, Point map)
-        //{
-        //    Get(location, tile, map);
-        //}
-        public Target(GameLocation location, Vector2 tile, Point map)
-        {
-            Initialize(location, tile, map);
-        }
+        /// <summary>Create Empty Target</summary>
+        public Target() { }
 
-        public Target(GameLocation location, Vector2 tile, object obj)
+        /// <summary>Create Simple Target</summary>
+        public Target(object obj, GameLocation location, Vector2 tile)
         {
             TargetObject = obj;
             TargetLocation = location;
             TilePosition = tile;
         }
 
-        private void Initialize(GameLocation location, Vector2 tile, Point map)
-        {
-            TargetLocation = location;
-            TilePosition = tile;
-        }
-
-        /// <summary>Only for set values</summary>
-        public static void Init(ModConfig config, IModHelper helper, IMonitor monitor)
+        /// <summary>Use in ModEntry.Entry() | Only for set values.</summary>
+        public static void Init(ModConfig config, IMonitor monitor)
         {
             Config = config;
-            Helper = helper;
             Monitor = monitor;
         }
 
@@ -88,57 +76,5 @@ namespace LetsMoveIt.TargetData
             }
             return false;
         }
-
-        //public bool IsOccupied(GameLocation location, Vector2 tile)
-        //{
-        //    bool occupied = false;
-        //    if (!location.isTilePassable(tile) || !location.isTileOnMap(tile) || location.isTileHoeDirt(tile) || location.isCropAtTile((int)tile.X, (int)tile.Y) || location.IsTileBlockedBy(tile, ignorePassables: CollisionMask.All))
-        //    {
-        //        if (TargetObject is Crop && location.isTileHoeDirt(tile))
-        //        {
-        //            occupied = false;
-        //        }
-        //        else if (TargetObject is SObject sObject && sObject.IsTapper())
-        //        {
-        //            if (location.terrainFeatures.TryGetValue(tile, out var tf) && tf is Tree)
-        //            {
-        //                occupied = false;
-        //            }
-        //            else
-        //            {
-        //                occupied = true;
-        //            }
-        //        }
-        //        else
-        //        {
-        //            occupied = true;
-        //        }
-        //    }
-        //    if (BoundingBoxTile.Count != 0)
-        //    {
-        //        BoundingBoxTile.ToList().ForEach(t =>
-        //        {
-        //            if (!location.isTilePassable(t) || !location.isTileOnMap(t) || location.isTileHoeDirt(t) || location.isCropAtTile((int)t.X, (int)t.Y) || location.IsTileBlockedBy(t, ignorePassables: CollisionMask.All))
-        //            {
-        //                if (BoundingBoxTile.Count == 1)
-        //                {
-        //                    if (TargetObject is Bush bush && bush.size.Value == 3 && location.getObjectAtTile((int)tile.X, (int)tile.Y) is IndoorPot)
-        //                    {
-        //                        occupied = false;
-        //                    }
-        //                    else
-        //                    {
-        //                        occupied = true;
-        //                    }
-        //                }
-        //                else
-        //                {
-        //                    occupied = true;
-        //                }
-        //            }
-        //        });
-        //    }
-        //    return occupied;
-        //}
     }
 }

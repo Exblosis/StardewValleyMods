@@ -1,10 +1,8 @@
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Locations;
-using StardewValley.Menus;
 using StardewValley.Monsters;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
@@ -152,7 +150,7 @@ namespace LetsMoveIt.TargetData
 
         private void MoveTerrainFeature(TerrainFeature terrainFeature, GameLocation location, Vector2 tile)
         {
-            if (terrainFeature is Bush bush && bush.size.Value == 3)
+            if (terrainFeature is Bush { size.Value: 3 } bush)
             {
                 if (location.objects.TryGetValue(tile, out var obj) && obj is IndoorPot pot)
                 {
@@ -231,7 +229,7 @@ namespace LetsMoveIt.TargetData
                     location.terrainFeatures.Remove(tile);
                 }
                 location.terrainFeatures.Add(tile, terrainFeature);
-                HashSet<Vector2> neighbors = [tile + new Vector2(0, 1), tile + new Vector2(1, 0), tile + new Vector2(0, -1), tile + new Vector2(-1, 0)];
+                Vector2[] neighbors = [tile + new Vector2(0, 1), tile + new Vector2(1, 0), tile + new Vector2(0, -1), tile + new Vector2(-1, 0)];
                 foreach (Vector2 ct in neighbors)
                 {
                     if (location.terrainFeatures.TryGetValue(ct, out var neighbor) && neighbor is HoeDirt hoeDirtNeighbors)

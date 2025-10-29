@@ -15,10 +15,10 @@ namespace LetsMoveIt
     /// <summary>The mod entry point.</summary>
     internal class ModEntry : Mod
     {
-        private static ModConfig Config = null!;
+        private static ModConfig Config = null!; // Initialized in Entry()
 
-        private static Dictionary<Vector2, List<Target>> SelectedTargets = [];
-        private static Target? OneTarget;
+        private static readonly Dictionary<Vector2, List<Target>> MultipleTargets = [];
+        private static Target? SingleTarget;
 
         private static bool Select = false;
         private static Vector2 StartCursorTile;
@@ -30,7 +30,7 @@ namespace LetsMoveIt
         {
             Config = helper.ReadConfig<ModConfig>();
             I18n.Init(helper.Translation);
-            Target.Init(Config, Helper, Monitor);
+            Target.Init(Config, Monitor);
 
             if (!Config.ModEnabled)
                 return;
@@ -49,11 +49,10 @@ namespace LetsMoveIt
         {
             if (!Config.ModEnabled)
             {
-                SelectedTargets.Clear();
-                OneTarget = null;
+                ClearSelection();
                 return;
             }
-            if (Helper.Input.IsDown(Config.ModKey) && Select && Config.MultiSelect)
+            if (Config.ModKey.IsDown() && Select && Config.MultiSelect)
             {
                 Game1.player.canOnlyWalk = true;
                 SelectedArea = new Rectangle((int)Math.Min(Game1.currentCursorTile.X, StartCursorTile.X), (int)Math.Min(Game1.currentCursorTile.Y, StartCursorTile.Y), (int)Math.Abs(Game1.currentCursorTile.X - StartCursorTile.X) + 1, (int)Math.Abs(Game1.currentCursorTile.Y - StartCursorTile.Y) + 1);
@@ -61,22 +60,22 @@ namespace LetsMoveIt
                 {
                     for (int y_offset = 0; y_offset < SelectedArea.Height; y_offset++)
                     {
-                        e.SpriteBatch.Draw(Game1.mouseCursors, Game1.GlobalToLocal(new Vector2(SelectedArea.X, SelectedArea.Y) * 64 + new Vector2(x_offset, y_offset) * 64), new Rectangle?(new Rectangle(194, 388, 16, 16)), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1);
+                        e.SpriteBatch.Draw(Game1.mouseCursors, Game1.GlobalToLocal(new Vector2(SelectedArea.X, SelectedArea.Y) * Game1.tileSize + new Vector2(x_offset, y_offset) * Game1.tileSize), new Rectangle(194, 388, 16, 16), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1);
                     }
                 }
             }
-            if (OneTarget is not null)
+            if (SingleTarget is not null)
             {
-                if (OneTarget.TargetObject is null)
+                if (SingleTarget.TargetObject is null)
                 {
-                    OneTarget = null;
+                    SingleTarget = null;
                     return;
                 }
-                OneTarget.Render(e.SpriteBatch, Game1.currentLocation, Game1.currentCursorTile);
+                SingleTarget.Render(e.SpriteBatch, Game1.currentLocation, Game1.currentCursorTile);
             }
-            if (SelectedTargets.Count > 0)
+            if (MultipleTargets.Count > 0)
             {
-                foreach (var targetList in SelectedTargets.Values)
+                foreach (var targetList in MultipleTargets.Values)
                 {
                     foreach (var t in targetList)
                     {
@@ -90,204 +89,91 @@ namespace LetsMoveIt
 
         private void OnRenderingHud(object? sender, RenderingHudEventArgs e)
         {
-            if (OneTarget is null)
-                return;
-            string toolbarMessage = Config.CancelKey + " " + I18n.Message("Info.Cancel") + " | " + Config.OverwriteKey + " " + I18n.Message("Info.Force") + " | " + Config.RemoveKey + " " + I18n.Message("Info.Remove");
-            Vector2 bounds = Game1.smallFont.MeasureString(toolbarMessage);
-            Vector2 msgPosition = new(Game1.uiViewport.Width / 2 - bounds.X / 2, Game1.uiViewport.Height - 140);
-            Utility.drawTextWithColoredShadow(e.SpriteBatch, toolbarMessage, Game1.smallFont, msgPosition, Color.White, Color.Black);
+            if (SingleTarget is not null || MultipleTargets.Count > 0)
+            {
+                string toolbarMessage = $"{Config.CancelKey} {I18n.Message("Info.Cancel")} | {Config.OverwriteKey} {I18n.Message("Info.Force")} | {Config.RemoveKey} {I18n.Message("Info.Remove")}";
+                Vector2 bounds = Game1.smallFont.MeasureString(toolbarMessage);
+                Vector2 msgPosition = new(Game1.uiViewport.Width / 2 - bounds.X / 2, Game1.uiViewport.Height - 140); // 140 = above toolbar
+                Utility.drawTextWithColoredShadow(e.SpriteBatch, toolbarMessage, Game1.smallFont, msgPosition, Color.White, Color.Black);
+            }
         }
 
         private void OnButtonPressed(object? sender, ButtonPressedEventArgs e)
         {
-            if (!Config.ModEnabled || !Context.IsPlayerFree && Game1.activeClickableMenu is not CarpenterMenu)
+            if (!Config.ModEnabled)
+                return;
+            if (!Context.IsPlayerFree && Game1.activeClickableMenu is not CarpenterMenu)
                 return;
             if (Config.DisableOnEvent && Game1.eventUp)
                 return;
-            if (Config.ToggleCopyModeKey != SButton.None && e.Button == Config.ToggleCopyModeKey)
-            {
-                Config.CopyMode = !Config.CopyMode;
-                if (Config.CopyMode)
-                {
-                    Game1.playSound("drumkit6");
-                }
-                else
-                {
-                    Game1.playSound("drumkit6", 200);
-                }
-            }
-            if (Config.ToggleMultiSelectKey != SButton.None && e.Button == Config.ToggleMultiSelectKey)
-            {
-                Config.MultiSelect = !Config.MultiSelect;
-                if (Config.MultiSelect)
-                {
-                    Game1.playSound("drumkit6");
-                }
-                else
-                {
-                    Game1.playSound("drumkit6", 200);
-                }
-            }
-            if (e.Button == Config.CancelKey && OneTarget is not null || e.Button == Config.CancelKey && SelectedTargets.Count > 0)
-            {
-                PlaySound();
-                SelectedTargets.Clear();
-                OneTarget = null;
-                Helper.Input.Suppress(e.Button);
+            if (ToggleKey())
                 return;
-            }
-            if (e.Button == Config.RemoveKey && OneTarget is not null || e.Button == Config.RemoveKey && SelectedTargets.Count > 0)
+            if (SingleTarget is not null || MultipleTargets.Count > 0)
             {
-                string select = I18n.Dialogue("Remove.Select1");
-                if (OneTarget?.TargetObject is Character)
-                    select = I18n.Dialogue("Remove.Select2");
-                if (OneTarget?.TargetObject is Building)
-                    select = I18n.Dialogue("Remove.Select3");
-                Game1.player.currentLocation.createQuestionDialogue(I18n.Dialogue("Remove", new { select }), Mod1.YesNoResponses(), (f, response) =>
+                if (Config.CancelKey.JustPressed())
                 {
-                    if (response == "Yes")
-                    {
-                        OneTarget?.Remove();
-                        foreach (var targetList in SelectedTargets.Values)
-                        {
-                            foreach (var t in targetList)
-                            {
-                                if (t.TargetObject is null)
-                                    continue;
-                                t.Remove();
-                            }
-                        }
-                        SelectedTargets.Clear();
-                        Game1.playSound("trashcan");
-                    }
-                });
-                Helper.Input.Suppress(e.Button);
-                return;
-            }
-            if (e.Button == Config.MoveKey)
-            {
-                if (Config.ModKey == SButton.None)
-                    return;
-                if (Helper.Input.IsDown(Config.ModKey))
-                {
-                    Game1.player.canOnlyWalk = true;
-                    SelectedTargets.Clear();
-                    OneTarget = null;
-                    if (Config.MultiSelect)
-                    {
-                        Select = true;
-                        StartCursorTile = Game1.currentCursorTile;
-                        return;
-                    }
-                    else
-                    {
-                        Helper.Input.Suppress(Config.MoveKey);
-                        OneTarget = Target.Get(Game1.currentLocation, Game1.currentCursorTile, Mod1.GetGlobalMousePosition());
-                        if (OneTarget?.TargetObject is null)
-                        {
-                            //Monitor.Log("NULL", LogLevel.Debug); // <<< List NetFields >>> <<< debug >>>
-                            OneTarget = null;
-                            return;
-                        }
-                        PlaySound();
-                        return;
-                    }
-                }
-                if (OneTarget is not null)
-                {
-                    Helper.Input.Suppress(Config.MoveKey);
-                    bool overwriteTile = Helper.Input.IsDown(Config.OverwriteKey);
-                    if (OneTarget.IsOccupied(Game1.currentLocation, Game1.currentCursorTile) && !overwriteTile)
-                    {
-                        Game1.playSound("cancel");
-                        return;
-                    }
-                    if (Config.CopyMode)
-                    {
-                        OneTarget.CopyTo(Game1.currentLocation, Game1.currentCursorTile, overwriteTile);
-                    }
-                    else
-                    {
-                        OneTarget.MoveTo(Game1.currentLocation, Game1.currentCursorTile, overwriteTile);
-                        PlaySound();
-                    }
-                }
-                if (SelectedTargets.Count > 0)
-                {
-                    Helper.Input.Suppress(Config.MoveKey);
-                    bool overwriteTile = Helper.Input.IsDown(Config.OverwriteKey);
-                    List<Target> toRemove = [];
-                    foreach (var targetList in SelectedTargets.Values)
-                    {
-                        foreach (var t in targetList)
-                        {
-                            if (t.TargetObject is null)
-                                continue;
-                            if (t.IsOccupied(Game1.currentLocation, Game1.currentCursorTile + (t.TilePosition - new Vector2(SelectedArea.X, SelectedArea.Y))) && !overwriteTile)
-                            {
-                                continue;
-                            }
-                            if (Config.CopyMode)
-                            {
-                                t.CopyTo(Game1.currentLocation, Game1.currentCursorTile + (t.TilePosition - new Vector2(SelectedArea.X, SelectedArea.Y)), overwriteTile);
-                            }
-                            else
-                            {
-                                t.MoveTo(Game1.currentLocation, Game1.currentCursorTile + (t.TilePosition - new Vector2(SelectedArea.X, SelectedArea.Y)), overwriteTile);
-                            }
-                            if (t.TargetObject is null)
-                                toRemove.Add(t);
-                        }
-                        foreach (var t in toRemove)
-                            targetList.Remove(t);
-                    }
-                    var emptyKeys = SelectedTargets
-                        .Where(pair => pair.Value.Count == 0)
-                        .Select(pair => pair.Key)
-                        .ToList();
-
-                    foreach (var key in emptyKeys)
-                        SelectedTargets.Remove(key);
-
+                    Helper.Input.Suppress(e.Button);
+                    ClearSelection();
                     PlaySound();
+                    return;
+                }
+                if (Config.RemoveKey.JustPressed())
+                {
+                    Helper.Input.Suppress(e.Button);
+                    RemoveTarget();
+                    return;
+                }
+            }
+            if (Config.MoveKey.JustPressed())
+            {
+                if (Config.ModKey.IsDown())
+                {
+                    SelectTarget(e);
+                    return;
+                }
+                if (SingleTarget is not null)
+                {
+                    SingleTargetAction(e);
+                }
+                if (MultipleTargets.Count > 0)
+                {
+                    MultipleTargetsAction(e);
                 }
             }
         }
 
         private void OnButtonReleased(object? sender, ButtonReleasedEventArgs e)
         {
-            if (e.Button == Config.MoveKey)
+            if (Config.MoveKey.GetState() == SButtonState.Released)
             {
                 Select = false;
-                if (Helper.Input.IsDown(Config.ModKey) && Config.MultiSelect)
+                if (Config.ModKey.IsDown() && Config.MultiSelect)
                 {
                     var seenObjects = new HashSet<object>();
                     for (int x = 0; x < SelectedArea.Width; x++)
                     {
                         for (int y = 0; y < SelectedArea.Height; y++)
                         {
-                            int xTile = SelectedArea.X + x;
-                            int yTile = SelectedArea.Y + y;
-                            Vector2 tile = new(xTile, yTile);
+                            Vector2 tile = new(SelectedArea.X + x, SelectedArea.Y + y);
 
                             // Sammle alle Targets auf diesem Tile
                             List<Target> targetsOnTile = Target.GetAllTargets(Game1.currentLocation, tile, Game1.GlobalToLocal(tile).ToPoint());
-                            if (targetsOnTile.Count > 0)
+                            if (targetsOnTile?.Count > 0)
                             {
-                                if (!SelectedTargets.ContainsKey(tile))
-                                    SelectedTargets[tile] = [];
+                                if (!MultipleTargets.ContainsKey(tile))
+                                    MultipleTargets[tile] = [];
                                 foreach (var t in targetsOnTile)
                                 {
                                     // Nur hinzufügen, wenn das selbe Objekt nicht doppelt vorkommt
                                     if (t.TargetObject is not null && seenObjects.Add(t.TargetObject))
-                                        SelectedTargets[tile].Add(t);
+                                        MultipleTargets[tile].Add(t);
                                 }
                             }
                         }
                     }
-                    if (SelectedTargets.Count > 0)
+                    if (MultipleTargets.Count > 0)
                     {
-                        var allKeys = SelectedTargets.Keys;
+                        var allKeys = MultipleTargets.Keys;
                         Vector2 min = new(allKeys.Min(x => x.X), allKeys.Min(y => y.Y));
                         Vector2 max = new(allKeys.Max(x => x.X), allKeys.Max(y => y.Y));
                         SelectedArea = new Rectangle((int)min.X, (int)min.Y, (int)(max.X - min.X), (int)(max.Y - min.Y));
@@ -296,6 +182,156 @@ namespace LetsMoveIt
                 }
             }
         }
+
+        private static bool ToggleKey()
+        {
+            if (Config.ToggleCopyModeKey.JustPressed())
+            {
+                Config.CopyMode = Config.CopyMode.Toggle();
+                return true;
+            }
+            if (Config.ToggleMultiSelectKey.JustPressed())
+            {
+                Config.MultiSelect = Config.MultiSelect.Toggle();
+                return true;
+            }
+            if (Config.ToggleCropTileKey.JustPressed())
+            {
+                Config.MoveCropWithoutTile = Config.MoveCropWithoutTile.Toggle();
+                return true;
+            }
+            if (Config.ToggleCropPotKey.JustPressed())
+            {
+                Config.MoveCropWithoutIndoorPot = Config.MoveCropWithoutIndoorPot.Toggle();
+                return true;
+            }
+            return false;
+        }
+
+        private static void RemoveTarget()
+        {
+            string select = I18n.Dialogue("Remove.Select1");
+            if (SingleTarget?.TargetObject is Character)
+                select = I18n.Dialogue("Remove.Select2");
+            if (SingleTarget?.TargetObject is Building)
+                select = I18n.Dialogue("Remove.Select3");
+            Game1.player.currentLocation.createQuestionDialogue(I18n.Dialogue("Remove", new { select }), Mod1.YesNoResponses(), RemoveDialogAction);
+        }
+
+        private static void RemoveDialogAction(Farmer f, string response)
+        {
+            if (response != "Yes")
+                return;
+
+            SingleTarget?.Remove();
+            foreach (var targetList in MultipleTargets.Values)
+            {
+                foreach (var t in targetList)
+                {
+                    if (t.TargetObject is not null)
+                        t.Remove();
+                }
+            }
+            ClearSelection();
+            Game1.playSound("trashcan");
+        }
+
+        private void SelectTarget(ButtonPressedEventArgs e)
+        {
+            Game1.player.canOnlyWalk = true;
+            ClearSelection();
+            if (Config.MultiSelect)
+            {
+                Select = true;
+                StartCursorTile = Game1.currentCursorTile;
+            }
+            else
+            {
+                Helper.Input.Suppress(e.Button);
+                SingleTarget = Target.Get(Game1.currentLocation, Game1.currentCursorTile, Mod1.GetGlobalMousePosition());
+                if (SingleTarget?.TargetObject is null)
+                {
+                    SingleTarget = null;
+                    return;
+                }
+                PlaySound();
+            }
+        }
+
+        private void SingleTargetAction(ButtonPressedEventArgs e)
+        {
+            Helper.Input.Suppress(e.Button);
+            bool overwriteTile = Config.OverwriteKey.IsDown();
+
+            if (SingleTarget!.IsOccupied(Game1.currentLocation, Game1.currentCursorTile) && !overwriteTile)
+            {
+                Game1.playSound("cancel");
+                return;
+            }
+
+            if (Config.CopyMode)
+            {
+                SingleTarget.CopyTo(Game1.currentLocation, Game1.currentCursorTile, overwriteTile);
+            }
+            else
+            {
+                SingleTarget.MoveTo(Game1.currentLocation, Game1.currentCursorTile, overwriteTile);
+                PlaySound();
+            }
+        }
+
+        private void MultipleTargetsAction(ButtonPressedEventArgs e)
+        {
+            Helper.Input.Suppress(e.Button);
+            bool overwriteTile = Config.OverwriteKey.IsDown();
+            List<Target> toRemove = [];
+
+            foreach (var targetList in MultipleTargets.Values)
+            {
+                foreach (var t in targetList)
+                {
+                    if (t.TargetObject is null)
+                        continue;
+
+                    Vector2 targetTile = Game1.currentCursorTile + (t.TilePosition - new Vector2(SelectedArea.X, SelectedArea.Y));
+
+                    if (t.IsOccupied(Game1.currentLocation, targetTile) && !overwriteTile)
+                        continue;
+
+                    if (Config.CopyMode)
+                    {
+                        t.CopyTo(Game1.currentLocation, targetTile, overwriteTile);
+                    }
+                    else
+                    {
+                        t.MoveTo(Game1.currentLocation, targetTile, overwriteTile);
+                    }
+
+                    if (t.TargetObject is null)
+                        toRemove.Add(t);
+                }
+
+                foreach (var t in toRemove)
+                    targetList.Remove(t);
+            }
+
+            var emptyKeys = MultipleTargets
+                .Where(pair => pair.Value.Count == 0)
+                .Select(pair => pair.Key)
+                .ToList();
+
+            foreach (var key in emptyKeys)
+                MultipleTargets.Remove(key);
+
+            PlaySound();
+        }
+
+        private static void ClearSelection()
+        {
+            MultipleTargets.Clear();
+            SingleTarget = null;
+        }
+
         public static void PlaySound()
         {
             if (!string.IsNullOrEmpty(Config.Sound))
@@ -308,23 +344,18 @@ namespace LetsMoveIt
                 return;
             if (Game1.activeClickableMenu is DialogueBox)
                 return;
-            SelectedTargets.Clear();
-            OneTarget = null;
+            ClearSelection();
         }
 
         private void OnWarped(object? sender, WarpedEventArgs e)
         {
             if (Config.DisableOnEvent && Game1.eventUp)
-            {
-                SelectedTargets.Clear();
-                OneTarget = null;
-            }
+                ClearSelection();
         }
 
         private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
         {
-            SelectedTargets.Clear();
-            OneTarget = null;
+            ClearSelection();
         }
 
         private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
@@ -355,38 +386,38 @@ namespace LetsMoveIt
                 getValue: () => Config.DisableOnEvent,
                 setValue: value => Config.DisableOnEvent = value
             );
-            configMenu.AddKeybind(
+            configMenu.AddKeybindList(
                 mod: ModManifest,
                 name: () => I18n.Config("ModKey"),
                 getValue: () => Config.ModKey,
                 setValue: value => Config.ModKey = value
             );
-            configMenu.AddKeybind(
+            configMenu.AddKeybindList(
                 mod: ModManifest,
                 name: () => I18n.Config("MoveKey"),
                 getValue: () => Config.MoveKey,
                 setValue: value => Config.MoveKey = value
             );
-            configMenu.AddKeybind(
+            configMenu.AddKeybindList(
                 mod: ModManifest,
                 name: () => I18n.Config("OverwriteKey"),
                 tooltip: () => I18n.Config("OverwriteKey.Tooltip"),
                 getValue: () => Config.OverwriteKey,
                 setValue: value => Config.OverwriteKey = value
             );
-            configMenu.AddKeybind(
+            configMenu.AddKeybindList(
                 mod: ModManifest,
                 name: () => I18n.Config("CancelKey"),
                 getValue: () => Config.CancelKey,
                 setValue: value => Config.CancelKey = value
             );
-            configMenu.AddKeybind(
+            configMenu.AddKeybindList(
                 mod: ModManifest,
                 name: () => I18n.Config("RemoveKey"),
                 getValue: () => Config.RemoveKey,
                 setValue: value => Config.RemoveKey = value
             );
-            configMenu.AddKeybind(
+            configMenu.AddKeybindList(
                 mod: ModManifest,
                 name: () => I18n.Config("ToggleCopyModeKey"),
                 getValue: () => Config.ToggleCopyModeKey,
@@ -398,7 +429,7 @@ namespace LetsMoveIt
                 getValue: () => Config.CopyMode,
                 setValue: value => Config.CopyMode = value
             );
-            configMenu.AddKeybind(
+            configMenu.AddKeybindList(
                 mod: ModManifest,
                 name: () => I18n.Config("ToggleMultiSelectKey"),
                 getValue: () => Config.ToggleMultiSelectKey,
@@ -422,11 +453,23 @@ namespace LetsMoveIt
                 mod: ModManifest,
                 text: () => I18n.Config("PrioritizeCrops")
             );
+            configMenu.AddKeybindList(
+                mod: ModManifest,
+                name: () => I18n.Config("ToggleCropTileKey"),
+                getValue: () => Config.ToggleCropTileKey,
+                setValue: value => Config.ToggleCropTileKey = value
+            );
             configMenu.AddBoolOption(
                 mod: ModManifest,
                 name: () => I18n.Config("MoveCropWithoutTile"),
                 getValue: () => Config.MoveCropWithoutTile,
                 setValue: value => Config.MoveCropWithoutTile = value
+            );
+            configMenu.AddKeybindList(
+                mod: ModManifest,
+                name: () => I18n.Config("ToggleCropPotKey"),
+                getValue: () => Config.ToggleCropPotKey,
+                setValue: value => Config.ToggleCropPotKey = value
             );
             configMenu.AddBoolOption(
                 mod: ModManifest,
@@ -434,10 +477,6 @@ namespace LetsMoveIt
                 getValue: () => Config.MoveCropWithoutIndoorPot,
                 setValue: value => Config.MoveCropWithoutIndoorPot = value
             );
-            //configMenu.AddParagraph(
-            //    mod: ModManifest,
-            //    text: () => I18n.Config("IndoorPot.Note")
-            //);
             // Enable & Disable Components Page
             configMenu.AddPageLink(
                 mod: ModManifest,

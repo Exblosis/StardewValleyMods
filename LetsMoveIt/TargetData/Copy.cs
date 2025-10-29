@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Extensions;
@@ -55,13 +56,13 @@ namespace LetsMoveIt.TargetData
                         Game1.playSound("cancel");
                         break;
                     default:
-                        Monitor.Log($"Unbekannter Typ: {TargetObject.GetType()}", StardewModdingAPI.LogLevel.Warn);
+                        Monitor.Log($"Unbekannter Typ: {TargetObject.GetType()}", LogLevel.Warn);
                         break;
                 }
             }
             catch (System.Exception ex)
             {
-                Monitor.Log($"Fehler beim Kopieren: {ex}", StardewModdingAPI.LogLevel.Error);
+                Monitor.Log($"Fehler beim Kopieren: {ex}", LogLevel.Error);
                 Game1.playSound("dwop");
             }
         }
@@ -234,7 +235,7 @@ namespace LetsMoveIt.TargetData
                     location.terrainFeatures.Add(tile, hoeDirtCopy);
                     if (hoeDirt.crop is not null)
                     {
-                        Target c = new(hoeDirt.crop.currentLocation, hoeDirt.crop.tilePosition, hoeDirt.crop);
+                        Target c = new(hoeDirt.crop, hoeDirt.crop.currentLocation, hoeDirt.crop.tilePosition);
                         c?.CopyTo(location, tile, overwriteTile);
                     }
                     location.playSound("hoeHit", tile);

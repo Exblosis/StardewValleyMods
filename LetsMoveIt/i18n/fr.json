@@ -1,16 +1,24 @@
 ﻿{
     // Config
     "config.ModEnabled": "Mod activé",
+    "config.ModEnabled.Tooltip": "Une fois activé, maintenez la touche mod enfoncée et sélectionnez un objet avec la touche de déplacement",
+    "config.DisableOnEvent": "Désactiver le mod pendant un événement.",
     "config.ModKey": "Raccourci",
     "config.MoveKey": "Raccourci (déplacer)",
     "config.OverwriteKey": "Placement de force",
     "config.OverwriteKey.Tooltip": "Attention : peut parfois supprimer d'autres composants !",
     "config.CancelKey": "Annuler",
     "config.RemoveKey": "Retirer",
+    "config.ToggleCopyModeKey": "Basculer la configuration de copie",
     "config.CopyMode": "Copier au lieu de déplacer",
+    "config.ToggleMultiSelectKey": "Basculer la configuration de sélection multiple",
+    "config.MultiSelect": "Sélection multiple",
+    "config.MultiSelect.Tooltip": "Maintenez la touche Mod et maintenez la touche Déplacer pour sélectionner plusieurs objets.",
     "config.Sound": "Son",
     "config.PrioritizeCrops": "Prioriser le mouvement des cultures",
+    "config.ToggleCropTileKey": "Basculer la configuration séparée des terres agricoles",
     "config.MoveCropWithoutTile": "culture séparément des terres agricoles",
+    "config.ToggleCropPotKey": "Basculer la configuration séparée du pot",
     "config.MoveCropWithoutIndoorPot": "récolte et théier séparément du pot",
     "config.Page.Components.Link": "Activer et désactiver les composants",
     "config.Page.Components.Link.Tooltip": "CLIQUEZ-MOI",
@@ -47,20 +55,11 @@
     "dialogue.Remove.Select3": "démolir",
 
     // Message
-    "message.OnlyHost": "Seul le propriétaire de la ferme peut faire ça !",
-    "message.BuildingIsFull": "Le bâtiment de cet animal est plein !",
+    "message.OnlyHost": "Seul le propriétaire de la ferme peut faire ça !",
+    "message.BuildingIsFull": "Le bâtiment de cet animal est plein !",
     "message.UnderConstruction": "En construction !",
     "message.NotImplemented": "Pas implémenté !",
     "message.Info.Cancel": "annuler",
     "message.Info.Force": "forcer",
-    "message.Info.Remove": "retirer",
-
-
-    // TODO
-    "config.ModEnabled.Tooltip": "Once enabled, hold down the mod key and select an object with the move key",
-    "config.DisableOnEvent": "Disable the mod during an event.",
-    "config.ToggleCopyModeKey": "Toggle the copy config",
-    "config.ToggleMultiSelectKey": "Toggle the multi select config",
-    "config.MultiSelect": "Multi select",
-    "config.MultiSelect.Tooltip": "Hold the Mod key and hold the Move key to select multiple objects."
+    "message.Info.Remove": "retirer"
 }

@@ -1,4 +1,6 @@
 using StardewModdingAPI;
+using StardewModdingAPI.Utilities;
+using StardewValley;
 
 namespace LetsMoveIt
 {
@@ -42,12 +44,14 @@ namespace LetsMoveIt
         public string Sound { get; set; } = "shwip";
 
         //Keybinding
-        public SButton ModKey { get; set; } = SButton.LeftAlt;
-        public SButton MoveKey { get; set; } = SButton.MouseLeft;
-        public SButton OverwriteKey { get; set; } = SButton.LeftControl;
-        public SButton CancelKey { get; set; } = SButton.Escape;
-        public SButton RemoveKey { get; set; } = SButton.Delete;
-        public SButton ToggleCopyModeKey { get; set; } = SButton.None;
-        public SButton ToggleMultiSelectKey { get; set; } = SButton.None;
+        public KeybindList ModKey { get; set; } = new(SButton.LeftAlt);
+        public KeybindList MoveKey { get; set; } = new(SButton.MouseLeft);
+        public KeybindList OverwriteKey { get; set; } = new(SButton.LeftControl);
+        public KeybindList CancelKey { get; set; } = new(SButton.Escape);
+        public KeybindList RemoveKey { get; set; } = new(SButton.Delete);
+        public KeybindList ToggleCopyModeKey { get; set; } = new(SButton.None);
+        public KeybindList ToggleMultiSelectKey { get; set; } = new(SButton.None);
+        public KeybindList ToggleCropTileKey { get; set; } = new(SButton.None);
+        public KeybindList ToggleCropPotKey { get; set; } = new(SButton.None);
     }
 }

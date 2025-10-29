@@ -4,29 +4,31 @@ using StardewValley;
 
 namespace LetsMoveIt
 {
-    internal class Mod1
+    internal static class Mod1
     {
-        /// <summary>Get the local tile with local offset.</summary>
+        //public const int TileSize = 64;
+
+        /// <summary>Get the local tile with local offset. Vector2 Extension</summary>
         /// <param name="tile">Tile</param>
         /// <param name="x">Offset X</param>
         /// <param name="y">Offset Y</param>
-        public static Vector2 LocalTile(Vector2 tile, float x = 0, float y = 0)
+        public static Vector2 ToLocal(this Vector2 tile, float x = 0, float y = 0)
         {
-            return Game1.GlobalToLocal(new Vector2(x, y) + tile * 64);
+            return Game1.GlobalToLocal(new Vector2(x, y) + tile * Game1.tileSize);
         }
         /// <summary>Get the local cursor tile with local offset.</summary>
         /// <param name="x">Offset X</param>
         /// <param name="y">Offset Y</param>
         public static Vector2 LocalCursorTile(float x = 0, float y = 0)
         {
-            return Game1.GlobalToLocal(new Vector2(x, y) + Game1.currentCursorTile * 64);
+            return Game1.GlobalToLocal(new Vector2(x, y) + Game1.currentCursorTile * Game1.tileSize);
         }
 
         /// <summary>Get the local cursor tile with local offset.</summary>
         /// <param name="offset">Offset</param>
         public static Vector2 LocalCursorTile(Vector2 offset)
         {
-            return Game1.GlobalToLocal(offset + Game1.currentCursorTile * 64);
+            return Game1.GlobalToLocal(offset + Game1.currentCursorTile * Game1.tileSize);
         }
 
         /// <summary>Get the global Mouse Position.</summary>
@@ -42,6 +44,12 @@ namespace LetsMoveIt
             new Response("Yes", Game1.content.LoadString("Strings\\Lexicon:QuestionDialogue_Yes")).SetHotKey(Keys.Y).SetHotKey(Keys.Enter),
             new Response("No", Game1.content.LoadString("Strings\\Lexicon:QuestionDialogue_No")).SetHotKey(Keys.Escape)
             ];
+        }
+
+        public static bool Toggle(this bool config)
+        {
+            Game1.playSound("drumkit6", !config ? null : 200);
+            return !config;
         }
     }
 }
