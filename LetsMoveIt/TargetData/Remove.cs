@@ -59,7 +59,7 @@ namespace LetsMoveIt.TargetData
             }
             catch (System.Exception ex)
             {
-                Monitor.Log($"Fehler beim Entfernen: {ex}", LogLevel.Error);
+                Monitor.Log($"Fehler beim Entfernen: {ex.Message}\n{ex.StackTrace}", LogLevel.Error);
                 Game1.playSound("dwop");
                 TargetObject = null;
             }
@@ -109,6 +109,12 @@ namespace LetsMoveIt.TargetData
                 {
                     TargetLocation.removeLightSource(torch.lightSource.Id);
                 }
+            }
+            if (sObject is Furniture furniture)
+            {
+                furniture.RemoveLightGlow();
+                furniture.removeLights();
+                TargetLocation.furniture.Remove(furniture);
             }
             TargetLocation.objects.Remove(TilePosition);
             TargetObject = null;

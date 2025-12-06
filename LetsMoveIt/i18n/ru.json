@@ -28,6 +28,7 @@
     "config.EnableMoveEntity.Tooltip": "Игрок, жители, животные, монстры",
     "config.EnableMoveCrop": "Перемещать урожай",
     "config.EnableMoveObject": "Все объекты",
+    "config.EnableMoveFurniture": "Перемещать мебель",
     "config.EnableMovePlaceableObject": "Перемещать размещаемые объекты",
     "config.EnableMovePlaceableObject.Tooltip": "Создаваемые предметы, бочки из шахты",
     "config.EnableMoveCollectibleObject": "Перемещать собираемые объекты",

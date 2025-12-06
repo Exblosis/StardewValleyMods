@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -5,6 +6,7 @@ using StardewValley;
 using StardewValley.Locations;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
+using static StardewValley.Minigames.TargetGame;
 
 namespace LetsMoveIt.TargetData
 {
@@ -14,11 +16,13 @@ namespace LetsMoveIt.TargetData
         /// <param name="location">The current location.</param>
         /// <param name="tile">The current tile position.</param>
         /// <param name="map">The current map position.</param>
-        public static Target Get(GameLocation location, Vector2 tile, Point map)
+        public static Target? Get(GameLocation location, Vector2 tile, Point map)
         {
             try
             {
                 Target target = new();
+
+                // Charaktere (NPCs, Tiere, Spieler)
                 if (Config.EnableMoveEntity && !Config.MultiSelect)
                 {
                     foreach (var c in location.characters)
@@ -58,6 +62,18 @@ namespace LetsMoveIt.TargetData
                         return target;
                     }
                 }
+
+                // Möbel
+                if (Config.EnableMoveObject && Config.EnableMoveFurniture)
+                {
+                    Furniture? furniture = location.GetFurnitureAt(tile);
+                    if (furniture is not null) {
+                        target.Set(furniture, furniture.Location, furniture.TileLocation);
+                        return target;
+                    }
+                }
+
+                // Objekte
                 if (location.objects.TryGetValue(tile, out var obj))
                 {
                     if ((obj is IndoorPot pot) && Config.MoveCropWithoutIndoorPot)
@@ -75,81 +91,73 @@ namespace LetsMoveIt.TargetData
                             return target;
                         }
                     }
-
-                    if (!Config.EnableMoveObject)
-                        goto SkipObjects;
-                    if (obj.isPlaceable() && !Config.EnableMovePlaceableObject)
-                        goto SkipObjects;
-                    if (obj.IsSpawnedObject && !Config.EnableMoveCollectibleObject)
-                        goto SkipObjects;
-                    if (!obj.isPlaceable() && !obj.IsSpawnedObject && !Config.EnableMoveGeneratedObject)
-                        goto SkipObjects;
-
-                    target.Set(obj, obj.Location, obj.TileLocation);
-                    return target;
-                }
-                SkipObjects:
-                foreach (var rc in location.resourceClumps)
-                {
-                    if (rc.occupiesTile((int)tile.X, (int)tile.Y) && Config.EnableMoveResourceClump)
+                    if (Config.EnableMoveObject)
                     {
-                        int rcIndex = rc.parentSheetIndex.Value;
-                        if ((rc is GiantCrop) && !Config.EnableMoveGiantCrop)
-                            goto SkipResourceClumps;
-                        if ((rcIndex is ResourceClump.stumpIndex) && !Config.EnableMoveStump)
-                            goto SkipResourceClumps;
-                        if ((rcIndex is ResourceClump.hollowLogIndex) && !Config.EnableMoveHollowLog)
-                            goto SkipResourceClumps;
-                        if ((rcIndex is ResourceClump.boulderIndex or ResourceClump.quarryBoulderIndex or ResourceClump.mineRock1Index or ResourceClump.mineRock2Index or ResourceClump.mineRock3Index or ResourceClump.mineRock4Index) && !Config.EnableMoveBoulder)
-                            goto SkipResourceClumps;
-                        if ((rcIndex is ResourceClump.meteoriteIndex) && !Config.EnableMoveMeteorite)
-                            goto SkipResourceClumps;
-
-                        target.Set(rc, rc.Location, rc.Tile);
-                        return target;
+                        bool placeableObject = obj.isPlaceable() && Config.EnableMovePlaceableObject;
+                        bool spawnedObject = obj.IsSpawnedObject && Config.EnableMoveCollectibleObject;
+                        bool generatedObject = !placeableObject && !spawnedObject && Config.EnableMoveGeneratedObject;
+                        if (placeableObject || spawnedObject || generatedObject)
+                        {
+                            target.Set(obj, obj.Location, obj.TileLocation);
+                            return target;
+                        }
                     }
                 }
-                SkipResourceClumps:
+
+                // ResourceClumps
+                foreach (var rc in location.resourceClumps)
+                {
+                    if (!rc.occupiesTile((int)tile.X, (int)tile.Y) || !Config.EnableMoveResourceClump) continue;
+                    int rcIndex = rc.parentSheetIndex.Value;
+                    if ((rc is GiantCrop) && !Config.EnableMoveGiantCrop) continue;
+                    if ((rcIndex is ResourceClump.stumpIndex) && !Config.EnableMoveStump) continue;
+                    if ((rcIndex is ResourceClump.hollowLogIndex) && !Config.EnableMoveHollowLog) continue;
+                    if ((rcIndex is ResourceClump.boulderIndex or ResourceClump.quarryBoulderIndex or ResourceClump.mineRock1Index or ResourceClump.mineRock2Index or ResourceClump.mineRock3Index or ResourceClump.mineRock4Index) && !Config.EnableMoveBoulder) continue;
+                    if ((rcIndex is ResourceClump.meteoriteIndex) && !Config.EnableMoveMeteorite) continue;
+
+                    target.Set(rc, rc.Location, rc.Tile);
+                    return target;
+                }
+
+                // Crop auf HoeDirt
                 if (location.isCropAtTile((int)tile.X, (int)tile.Y) && Config.MoveCropWithoutTile && Config.EnableMoveCrop)
                 {
                     var cp = ((HoeDirt)location.terrainFeatures[tile]).crop;
                     target.Set(cp, cp.currentLocation, cp.tilePosition);
                     return target;
                 }
+
+                // LargeTerrainFeatures
                 if (location.largeTerrainFeatures is not null && Config.EnableMoveTerrainFeature)
                 {
                     foreach (var ltf in location.largeTerrainFeatures)
                     {
-                        if (ltf.getBoundingBox().Contains((int)tile.X * 64, (int)tile.Y * 64))
-                        {
-                            if ((ltf is Bush) && !Config.EnableMoveBush)
-                                goto SkipLargeTerrainFeatures;
-
-                            target.Set(ltf, ltf.Location, ltf.Tile);
-                            return target;
-                        }
+                        if (!ltf.getBoundingBox().Contains((int)tile.X * 64, (int)tile.Y * 64)) continue;
+                        if (ltf is Bush && !Config.EnableMoveBush) continue;
+                        
+                        target.Set(ltf, ltf.Location, ltf.Tile);
+                        return target;
                     }
                 }
-                SkipLargeTerrainFeatures:
+
+                // TerrainFeatures
                 if (location.terrainFeatures.TryGetValue(tile, out var tf) && Config.EnableMoveTerrainFeature)
                 {
-                    if ((tf is Flooring) && !Config.EnableMoveFlooring)
-                        goto SkipTerrainFeatures;
-                    if ((tf is Tree) && !Config.EnableMoveTree)
-                        goto SkipTerrainFeatures;
-                    if ((tf is FruitTree) && !Config.EnableMoveFruitTree)
-                        goto SkipTerrainFeatures;
-                    if ((tf is Grass) && !Config.EnableMoveGrass)
-                        goto SkipTerrainFeatures;
-                    if ((tf is HoeDirt) && !Config.EnableMoveFarmland)
-                        goto SkipTerrainFeatures;
-                    if ((tf is Bush) && !Config.EnableMoveBush) // Tea Bush
-                        goto SkipTerrainFeatures;
-
-                    target.Set(tf, tf.Location, tf.Tile);
-                    return target;
+                    if (tf is Flooring && !Config.EnableMoveFlooring) { }
+                    else if (tf is Tree && !Config.EnableMoveTree) { }
+                    else if (tf is FruitTree && !Config.EnableMoveFruitTree) { }
+                    else if (tf is Grass && !Config.EnableMoveGrass) { }
+                    else if (tf is HoeDirt && !Config.EnableMoveFarmland) { }
+                    else if (tf is HoeDirt { crop: not null } && Config.MoveCropWithoutTile) { }
+                    else if (tf is Bush && !Config.EnableMoveBush) { } // Tea Bush
+                    else
+                    {
+                        target.Set(tf, tf.Location, tf.Tile);
+                        return target;
+                    }
                 }
-                SkipTerrainFeatures:
+
+                // Gebäude
                 if (location.IsTileOccupiedBy(tile, CollisionMask.Buildings) && Config.EnableMoveBuilding)
                 {
                     var building = location.getBuildingAt(tile);
@@ -160,12 +168,12 @@ namespace LetsMoveIt.TargetData
                         return target;
                     }
                 }
-                return null!;
+                return null;
             }
             catch (System.Exception ex)
             {
-                Monitor.Log($"Fehler beim Select: {ex}", LogLevel.Error);
-                return null!;
+                Monitor.Log($"Fehler beim Select: {ex.Message}\n{ex.StackTrace}", LogLevel.Error);
+                return null;
             }
         }
 
@@ -221,6 +229,18 @@ namespace LetsMoveIt.TargetData
                     }
                 }
 
+                // Möbel
+                if (Config.EnableMoveObject && Config.EnableMoveFurniture)
+                {
+                    Furniture? furniture = location.GetFurnitureAt(tile);
+                    if (furniture is not null)
+                    {
+                        Target target = new();
+                        target.Set(furniture, furniture.Location, furniture.TileLocation);
+                        targets.Add(target);
+                    }
+                }
+
                 // Objekte
                 if (location.objects.TryGetValue(tile, out var obj))
                 {
@@ -241,9 +261,10 @@ namespace LetsMoveIt.TargetData
                     }
                     if (Config.EnableMoveObject)
                     {
-                        if (obj.isPlaceable() && Config.EnableMovePlaceableObject ||
-                            obj.IsSpawnedObject && Config.EnableMoveCollectibleObject ||
-                            !obj.isPlaceable() && !obj.IsSpawnedObject && Config.EnableMoveGeneratedObject)
+                        bool placeableObject = obj.isPlaceable() && Config.EnableMovePlaceableObject;
+                        bool spawnedObject = obj.IsSpawnedObject && Config.EnableMoveCollectibleObject;
+                        bool generatedObject = !placeableObject && !spawnedObject && Config.EnableMoveGeneratedObject;
+                        if (placeableObject || spawnedObject || generatedObject)
                         {
                             Target target = new();
                             target.Set(obj, obj.Location, obj.TileLocation);
@@ -255,19 +276,17 @@ namespace LetsMoveIt.TargetData
                 // ResourceClumps
                 foreach (var rc in location.resourceClumps)
                 {
-                    if (rc.occupiesTile((int)tile.X, (int)tile.Y) && Config.EnableMoveResourceClump)
-                    {
-                        int rcIndex = rc.parentSheetIndex.Value;
-                        if ((rc is GiantCrop) && !Config.EnableMoveGiantCrop) continue;
-                        if ((rcIndex is ResourceClump.stumpIndex) && !Config.EnableMoveStump) continue;
-                        if ((rcIndex is ResourceClump.hollowLogIndex) && !Config.EnableMoveHollowLog) continue;
-                        if ((rcIndex is ResourceClump.boulderIndex or ResourceClump.quarryBoulderIndex or ResourceClump.mineRock1Index or ResourceClump.mineRock2Index or ResourceClump.mineRock3Index or ResourceClump.mineRock4Index) && !Config.EnableMoveBoulder) continue;
-                        if ((rcIndex is ResourceClump.meteoriteIndex) && !Config.EnableMoveMeteorite) continue;
+                    if (!rc.occupiesTile((int)tile.X, (int)tile.Y) || !Config.EnableMoveResourceClump) continue;
+                    int rcIndex = rc.parentSheetIndex.Value;
+                    if ((rc is GiantCrop) && !Config.EnableMoveGiantCrop) continue;
+                    if ((rcIndex is ResourceClump.stumpIndex) && !Config.EnableMoveStump) continue;
+                    if ((rcIndex is ResourceClump.hollowLogIndex) && !Config.EnableMoveHollowLog) continue;
+                    if ((rcIndex is ResourceClump.boulderIndex or ResourceClump.quarryBoulderIndex or ResourceClump.mineRock1Index or ResourceClump.mineRock2Index or ResourceClump.mineRock3Index or ResourceClump.mineRock4Index) && !Config.EnableMoveBoulder) continue;
+                    if ((rcIndex is ResourceClump.meteoriteIndex) && !Config.EnableMoveMeteorite) continue;
 
-                        Target target = new();
-                        target.Set(rc, rc.Location, rc.Tile);
-                        targets.Add(target);
-                    }
+                    Target target = new();
+                    target.Set(rc, rc.Location, rc.Tile);
+                    targets.Add(target);
                 }
 
                 // Crop auf HoeDirt
@@ -284,13 +303,11 @@ namespace LetsMoveIt.TargetData
                 {
                     foreach (var ltf in location.largeTerrainFeatures)
                     {
-                        if (ltf.getBoundingBox().Contains((int)tile.X * 64, (int)tile.Y * 64))
-                        {
-                            if ((ltf is Bush) && !Config.EnableMoveBush) continue;
-                            Target target = new();
-                            target.Set(ltf, ltf.Location, ltf.Tile);
-                            targets.Add(target);
-                        }
+                        if (!ltf.getBoundingBox().Contains((int)tile.X * 64, (int)tile.Y * 64)) continue;
+                        if ((ltf is Bush) && !Config.EnableMoveBush) continue;
+                        Target target = new();
+                        target.Set(ltf, ltf.Location, ltf.Tile);
+                        targets.Add(target);
                     }
                 }
 
@@ -311,8 +328,8 @@ namespace LetsMoveIt.TargetData
             }
             catch (System.Exception ex)
             {
-                Monitor.Log($"Fehler beim Select: {ex}", LogLevel.Error);
-                return null!;
+                Monitor.Log($"Fehler beim Select: {ex.Message}\n{ex.StackTrace}", LogLevel.Error);
+                return new List<Target>();
             }
         }
 

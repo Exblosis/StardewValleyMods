@@ -62,7 +62,7 @@ namespace LetsMoveIt.TargetData
             }
             catch (System.Exception ex)
             {
-                Monitor.Log($"Fehler beim Kopieren: {ex}", LogLevel.Error);
+                Monitor.Log($"Fehler beim Kopieren: {ex.Message}\n{ex.StackTrace}", LogLevel.Error);
                 Game1.playSound("dwop");
             }
         }
@@ -249,6 +249,7 @@ namespace LetsMoveIt.TargetData
                 else if (terrainFeature is FruitTree fruitTree)
                 {
                     FruitTree fruitTreeCopy = new(fruitTree.treeId.Value, fruitTree.growthStage.Value);
+                    fruitTreeCopy.daysUntilMature.Value = fruitTree.daysUntilMature.Value;
                     location.terrainFeatures.Add(tile, fruitTreeCopy);
                     location.playSound("leafrustle", tile);
                 }

@@ -28,6 +28,7 @@
     "config.EnableMoveEntity.Tooltip": "플레이어, 주민, 동물, 몬스터",
     "config.EnableMoveCrop": "농작물 이동",
     "config.EnableMoveObject": "모든 객체",
+    "config.EnableMoveFurniture": "가구 이동",
     "config.EnableMovePlaceableObject": "배치된 객체 이동",
     "config.EnableMovePlaceableObject.Tooltip": "제작 가능 아이템, 광산 통",
     "config.EnableMoveCollectibleObject": "수집 가능한 객체 이동",

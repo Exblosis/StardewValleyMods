@@ -28,6 +28,7 @@
     "config.EnableMoveEntity.Tooltip": "Animaux, joueur(s), monstres, villageois",
     "config.EnableMoveCrop": "Déplacer les cultures",
     "config.EnableMoveObject": "Tous les objets",
+    "config.EnableMoveFurniture": "Déplacer les meubles",
     "config.EnableMovePlaceableObject": "Déplacer les objets placés",
     "config.EnableMovePlaceableObject.Tooltip": "Constructibles, barils de mine",
     "config.EnableMoveCollectibleObject": "Déplacer des objets de collection",

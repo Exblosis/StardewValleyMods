@@ -28,6 +28,7 @@
     "config.EnableMoveEntity.Tooltip": "Spieler, Dorfbewohner, Tiere, Monster",
     "config.EnableMoveCrop": "Ernte verschieben",
     "config.EnableMoveObject": "Alle Objekte",
+    "config.EnableMoveFurniture": "Möbel verschieben",
     "config.EnableMovePlaceableObject": "Platzierbare Objekte verschieben",
     "config.EnableMovePlaceableObject.Tooltip": "Herstellbar, Minenfässer",
     "config.EnableMoveCollectibleObject": "Sammelbare Objekte verschieben",

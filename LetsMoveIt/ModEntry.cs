@@ -15,14 +15,18 @@ namespace LetsMoveIt
     /// <summary>The mod entry point.</summary>
     internal class ModEntry : Mod
     {
-        private static ModConfig Config = null!; // Initialized in Entry()
+        private ModConfig Config = null!; // Initialized in Entry()
 
-        private static readonly Dictionary<Vector2, List<Target>> MultipleTargets = [];
-        private static Target? SingleTarget;
+        private const int ToolbarMessageHeight = 140;
+        private string ToolbarMessage = string.Empty;
+        private Vector2 Bounds;
 
-        private static bool Select = false;
-        private static Vector2 StartCursorTile;
-        private static Rectangle SelectedArea;
+        private readonly Dictionary<Vector2, List<Target>> MultipleTargets = new();
+        private Target? SingleTarget;
+
+        private bool Select = false;
+        private Vector2 StartCursorTile;
+        private Rectangle SelectedArea = Rectangle.Empty;
 
         /// <summary>The mod entry point, called after the mod is first loaded.</summary>
         /// <param name="helper">Provides simplified APIs for writing mods.</param>
@@ -55,12 +59,19 @@ namespace LetsMoveIt
             if (Config.ModKey.IsDown() && Select && Config.MultiSelect)
             {
                 Game1.player.canOnlyWalk = true;
-                SelectedArea = new Rectangle((int)Math.Min(Game1.currentCursorTile.X, StartCursorTile.X), (int)Math.Min(Game1.currentCursorTile.Y, StartCursorTile.Y), (int)Math.Abs(Game1.currentCursorTile.X - StartCursorTile.X) + 1, (int)Math.Abs(Game1.currentCursorTile.Y - StartCursorTile.Y) + 1);
+                SelectedArea = new Rectangle(
+                    (int)Math.Min(Game1.currentCursorTile.X, StartCursorTile.X),
+                    (int)Math.Min(Game1.currentCursorTile.Y, StartCursorTile.Y),
+                    (int)Math.Abs(Game1.currentCursorTile.X - StartCursorTile.X) + 1,
+                    (int)Math.Abs(Game1.currentCursorTile.Y - StartCursorTile.Y) + 1);
+
+                Vector2 basePosition = Game1.GlobalToLocal(new Vector2(SelectedArea.X, SelectedArea.Y) * Game1.tileSize);
                 for (int x_offset = 0; x_offset < SelectedArea.Width; x_offset++)
                 {
                     for (int y_offset = 0; y_offset < SelectedArea.Height; y_offset++)
                     {
-                        e.SpriteBatch.Draw(Game1.mouseCursors, Game1.GlobalToLocal(new Vector2(SelectedArea.X, SelectedArea.Y) * Game1.tileSize + new Vector2(x_offset, y_offset) * Game1.tileSize), new Rectangle(194, 388, 16, 16), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1);
+                        Vector2 position = basePosition + new Vector2(x_offset, y_offset) * Game1.tileSize;
+                        e.SpriteBatch.Draw(Game1.mouseCursors, position, new Rectangle(194, 388, 16, 16), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1);
                     }
                 }
             }
@@ -81,7 +92,8 @@ namespace LetsMoveIt
                     {
                         if (t.TargetObject is null)
                             continue;
-                        t.Render(e.SpriteBatch, Game1.currentLocation, Game1.currentCursorTile + (t.TilePosition - new Vector2(SelectedArea.X, SelectedArea.Y)));
+                        Vector2 renderTile = Game1.currentCursorTile + (t.TilePosition - new Vector2(SelectedArea.X, SelectedArea.Y));
+                        t.Render(e.SpriteBatch, Game1.currentLocation, renderTile);
                     }
                 }
             }
@@ -91,10 +103,8 @@ namespace LetsMoveIt
         {
             if (SingleTarget is not null || MultipleTargets.Count > 0)
             {
-                string toolbarMessage = $"{Config.CancelKey} {I18n.Message("Info.Cancel")} | {Config.OverwriteKey} {I18n.Message("Info.Force")} | {Config.RemoveKey} {I18n.Message("Info.Remove")}";
-                Vector2 bounds = Game1.smallFont.MeasureString(toolbarMessage);
-                Vector2 msgPosition = new(Game1.uiViewport.Width / 2 - bounds.X / 2, Game1.uiViewport.Height - 140); // 140 = above toolbar
-                Utility.drawTextWithColoredShadow(e.SpriteBatch, toolbarMessage, Game1.smallFont, msgPosition, Color.White, Color.Black);
+                Vector2 msgPosition = new(Game1.uiViewport.Width / 2 - Bounds.X / 2, Game1.uiViewport.Height - ToolbarMessageHeight);
+                Utility.drawTextWithColoredShadow(e.SpriteBatch, ToolbarMessage, Game1.smallFont, msgPosition, Color.White, Color.Black);
             }
         }
 
@@ -120,7 +130,7 @@ namespace LetsMoveIt
                 if (Config.RemoveKey.JustPressed())
                 {
                     Helper.Input.Suppress(e.Button);
-                    RemoveTarget();
+                    RemoveTargetAction();
                     return;
                 }
             }
@@ -128,7 +138,7 @@ namespace LetsMoveIt
             {
                 if (Config.ModKey.IsDown())
                 {
-                    SelectTarget(e);
+                    SelectTargetAction(e);
                     return;
                 }
                 if (SingleTarget is not null)
@@ -157,16 +167,19 @@ namespace LetsMoveIt
                             Vector2 tile = new(SelectedArea.X + x, SelectedArea.Y + y);
 
                             // Sammle alle Targets auf diesem Tile
-                            List<Target> targetsOnTile = Target.GetAllTargets(Game1.currentLocation, tile, Game1.GlobalToLocal(tile).ToPoint());
-                            if (targetsOnTile?.Count > 0)
+                            List<Target>? targetsOnTile = Target.GetAllTargets(Game1.currentLocation, tile, Game1.GlobalToLocal(tile).ToPoint());
+                            if (targetsOnTile is not null && targetsOnTile.Count > 0)
                             {
-                                if (!MultipleTargets.ContainsKey(tile))
-                                    MultipleTargets[tile] = [];
+                                if (!MultipleTargets.TryGetValue(tile, out var list))
+                                {
+                                    list = new List<Target>();
+                                    MultipleTargets[tile] = list;
+                                }
                                 foreach (var t in targetsOnTile)
                                 {
                                     // Nur hinzufügen, wenn das selbe Objekt nicht doppelt vorkommt
                                     if (t.TargetObject is not null && seenObjects.Add(t.TargetObject))
-                                        MultipleTargets[tile].Add(t);
+                                        list.Add(t);
                                 }
                             }
                         }
@@ -174,16 +187,18 @@ namespace LetsMoveIt
                     if (MultipleTargets.Count > 0)
                     {
                         var allKeys = MultipleTargets.Keys;
-                        Vector2 min = new(allKeys.Min(x => x.X), allKeys.Min(y => y.Y));
-                        Vector2 max = new(allKeys.Max(x => x.X), allKeys.Max(y => y.Y));
-                        SelectedArea = new Rectangle((int)min.X, (int)min.Y, (int)(max.X - min.X), (int)(max.Y - min.Y));
+                        int minX = (int)allKeys.Min(k => k.X);
+                        int minY = (int)allKeys.Min(k => k.Y);
+                        int maxX = (int)allKeys.Max(k => k.X);
+                        int maxY = (int)allKeys.Max(k => k.Y);
+                        SelectedArea = new Rectangle(minX, minY, maxX - minX, maxY - minY);
                         PlaySound();
                     }
                 }
             }
         }
 
-        private static bool ToggleKey()
+        private bool ToggleKey()
         {
             if (Config.ToggleCopyModeKey.JustPressed())
             {
@@ -208,7 +223,7 @@ namespace LetsMoveIt
             return false;
         }
 
-        private static void RemoveTarget()
+        private void RemoveTargetAction()
         {
             string select = I18n.Dialogue("Remove.Select1");
             if (SingleTarget?.TargetObject is Character)
@@ -218,7 +233,7 @@ namespace LetsMoveIt
             Game1.player.currentLocation.createQuestionDialogue(I18n.Dialogue("Remove", new { select }), Mod1.YesNoResponses(), RemoveDialogAction);
         }
 
-        private static void RemoveDialogAction(Farmer f, string response)
+        private void RemoveDialogAction(Farmer f, string response)
         {
             if (response != "Yes")
                 return;
@@ -236,7 +251,7 @@ namespace LetsMoveIt
             Game1.playSound("trashcan");
         }
 
-        private void SelectTarget(ButtonPressedEventArgs e)
+        private void SelectTargetAction(ButtonPressedEventArgs e)
         {
             Game1.player.canOnlyWalk = true;
             ClearSelection();
@@ -284,10 +299,12 @@ namespace LetsMoveIt
         {
             Helper.Input.Suppress(e.Button);
             bool overwriteTile = Config.OverwriteKey.IsDown();
-            List<Target> toRemove = [];
 
-            foreach (var targetList in MultipleTargets.Values)
+            foreach (var key in MultipleTargets.Keys.ToList())
             {
+                var targetList = MultipleTargets[key];
+                var toRemove = new List<Target>();
+
                 foreach (var t in targetList)
                 {
                     if (t.TargetObject is null)
@@ -326,13 +343,15 @@ namespace LetsMoveIt
             PlaySound();
         }
 
-        private static void ClearSelection()
+        private void ClearSelection()
         {
             MultipleTargets.Clear();
             SingleTarget = null;
+            SelectedArea = Rectangle.Empty;
+            Select = false;
         }
 
-        public static void PlaySound()
+        public void PlaySound()
         {
             if (!string.IsNullOrEmpty(Config.Sound))
                 Game1.playSound(Config.Sound);
@@ -360,6 +379,9 @@ namespace LetsMoveIt
 
         private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
         {
+            // setup toolbar message and bounds
+            ToolbarMessage = $"{Config.CancelKey} {I18n.Message("Info.Cancel")} | {Config.OverwriteKey} {I18n.Message("Info.Force")} | {Config.RemoveKey} {I18n.Message("Info.Remove")}";
+            Bounds = Game1.smallFont.MeasureString(ToolbarMessage);
 
             // get Generic Mod Config Menu's API (if it's installed)
             var configMenu = Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
@@ -519,6 +541,12 @@ namespace LetsMoveIt
                 name: () => I18n.Config("EnableMoveObject"),
                 getValue: () => Config.EnableMoveObject,
                 setValue: value => Config.EnableMoveObject = value
+            );
+            configMenu.AddBoolOption(
+                mod: ModManifest,
+                name: () => I18n.Config("EnableMoveFurniture"),
+                getValue: () => Config.EnableMoveFurniture,
+                setValue: value => Config.EnableMoveFurniture = value
             );
             configMenu.AddBoolOption(
                 mod: ModManifest,

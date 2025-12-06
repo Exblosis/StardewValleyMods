@@ -28,6 +28,7 @@
     "config.EnableMoveEntity.Tooltip": "玩家、村民、动物、怪物",
     "config.EnableMoveCrop": "移动作物",
     "config.EnableMoveObject": "所有物品",
+    "config.EnableMoveFurniture": "移动家具",
     "config.EnableMovePlaceableObject": "移动放置的物品",
     "config.EnableMovePlaceableObject.Tooltip": "可打造物品、矿井木桶",
     "config.EnableMoveCollectibleObject": "移动可收集物品",

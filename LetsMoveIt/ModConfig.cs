@@ -21,6 +21,7 @@ namespace LetsMoveIt
         public bool EnableMoveCrop { get; set; } = true;
         //Objects
         public bool EnableMoveObject { get; set; } = true;
+        public bool EnableMoveFurniture { get; set; } = true;
         public bool EnableMovePlaceableObject { get; set; } = true;
         public bool EnableMoveCollectibleObject { get; set; } = true;
         public bool EnableMoveGeneratedObject { get; set; } = true;

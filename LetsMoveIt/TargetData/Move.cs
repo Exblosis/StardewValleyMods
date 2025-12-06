@@ -62,7 +62,7 @@ namespace LetsMoveIt.TargetData
             }
             catch (System.Exception ex)
             {
-                Monitor.Log($"Fehler beim Verschieben: {ex}", LogLevel.Error);
+                Monitor.Log($"Fehler beim Verschieben: {ex.Message}\n{ex.StackTrace}", LogLevel.Error);
                 Game1.playSound("dwop");
                 TargetObject = null;
             }
@@ -140,6 +140,25 @@ namespace LetsMoveIt.TargetData
                     }
                 }
                 TargetObject = null;
+            }
+            else if (sObject is Furniture furniture)
+            {
+                if(TargetLocation.furniture.Contains(furniture))
+                {
+                    TargetLocation.furniture.Remove(furniture);
+                    location.furniture.Add(furniture);
+                    int y = furniture.GetModifiedWallTilePosition(location, (int)tile.X, (int)tile.Y);
+                    Vector2 newTile = new(tile.X, y);
+                    furniture.InitializeAtTile(newTile);
+                    furniture.updateDrawPosition();
+                    furniture.RemoveLightGlow();
+                    furniture.removeLights();
+                    if (Game1.isDarkOut(location))
+                    {
+                        furniture.addLights();
+                    }
+                    TargetObject = null;
+                }
             }
             else
             {
@@ -229,7 +248,14 @@ namespace LetsMoveIt.TargetData
                     location.terrainFeatures.Remove(tile);
                 }
                 location.terrainFeatures.Add(tile, terrainFeature);
-                Vector2[] neighbors = [tile + new Vector2(0, 1), tile + new Vector2(1, 0), tile + new Vector2(0, -1), tile + new Vector2(-1, 0)];
+
+                Vector2[] neighbors = new[]
+                {
+                    tile + new Vector2(0, 1),
+                    tile + new Vector2(1, 0),
+                    tile + new Vector2(0, -1),
+                    tile + new Vector2(-1, 0)
+                };
                 foreach (Vector2 ct in neighbors)
                 {
                     if (location.terrainFeatures.TryGetValue(ct, out var neighbor) && neighbor is HoeDirt hoeDirtNeighbors)

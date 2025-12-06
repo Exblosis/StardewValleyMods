@@ -28,6 +28,7 @@
     "config.EnableMoveEntity.Tooltip": "Giocatore, Abitanti, Animali, Mostri",
     "config.EnableMoveCrop": "Sposta Raccolti",
     "config.EnableMoveObject": "Tutti gli oggetti",
+    "config.EnableMoveFurniture": "Sposta mobili",
     "config.EnableMovePlaceableObject": "Sposta gli oggetti posizionati",
     "config.EnableMovePlaceableObject.Tooltip": "Craftabile, Barili da miniera",
     "config.EnableMoveCollectibleObject": "Sposta oggetti da collezione",

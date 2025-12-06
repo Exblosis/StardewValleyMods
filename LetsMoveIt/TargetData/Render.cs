@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
@@ -6,6 +7,7 @@ using StardewValley.Buildings;
 using StardewValley.Extensions;
 using StardewValley.GameData.Buildings;
 using StardewValley.Locations;
+using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using SObject = StardewValley.Object;
 
@@ -13,6 +15,30 @@ namespace LetsMoveIt.TargetData
 {
     internal partial class Target
     {
+        private static readonly Dictionary<string, Texture2D> TextureCache = new();
+
+        private static Texture2D LoadTextureCached(string assetName)
+        {
+            if (string.IsNullOrEmpty(assetName))
+                return Game1.objectSpriteSheet;
+
+            if (TextureCache.TryGetValue(assetName, out var texture))
+                return texture;
+
+            try
+            {
+                texture = Game1.content.Load<Texture2D>(assetName);
+                TextureCache[assetName] = texture;
+                return texture;
+            }
+            catch
+            {
+                // Fallback auf default SpriteSheet, Logging bei Bedarf
+                Monitor?.Log($"Unable to load texture '{assetName}', falling back to object sprite sheet.", LogLevel.Warn);
+                return Game1.objectSpriteSheet;
+            }
+        }
+
         public void Render(SpriteBatch spriteBatch, GameLocation location, Vector2 tile)
         {
             try
@@ -43,7 +69,7 @@ namespace LetsMoveIt.TargetData
             }
             catch (System.Exception ex)
             {
-                Monitor.Log($"Fehler beim Rendern: {ex}", LogLevel.Error);
+                Monitor?.Log($"Fehler beim Rendern: {ex.Message}\n{ex.StackTrace}", LogLevel.Error);
             }
         }
 
@@ -65,6 +91,18 @@ namespace LetsMoveIt.TargetData
 
         private void RenderSObject(SpriteBatch spriteBatch, SObject sObject, GameLocation location, Vector2 tile)
         {
+            //if (sObject is Furniture furniture)
+            //{
+            //    BoundingBoxTile.Clear();
+            //    var f = furniture.GetBoundingBox();
+            //    for (int x_offset = 0; x_offset < f.Width / 64; x_offset++)
+            //    {
+            //        for (int y_offset = 0; y_offset < f.Height / 64; y_offset++)
+            //        {
+            //            BoundingBoxTile.Add(tile + new Vector2(x_offset, y_offset));
+            //        }
+            //    }
+            //}
             sObject.draw(spriteBatch, (int)tile.X, (int)tile.Y, 0.6f);
         }
 
@@ -89,13 +127,13 @@ namespace LetsMoveIt.TargetData
                         spriteBatch.Draw(Game1.mouseCursors, tile.ToLocal(x_offset * 64, y_offset * 64), new Rectangle(194, 388, 16, 16), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1);
                     }
                 }
-                Texture2D texture = Game1.content.Load<Texture2D>(data.Texture);
+                Texture2D texture = LoadTextureCached(data.Texture);
                 spriteBatch.Draw(texture, tile.ToLocal(y: -64), new Rectangle(data.TexturePosition.X, data.TexturePosition.Y, 16 * data.TileSize.X, 16 * (data.TileSize.Y + 1)), Color.White * 0.6f, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1);
             }
             else
             {
                 string textureName = resourceClump.textureName.Value;
-                Texture2D texture = (textureName != null) ? Game1.content.Load<Texture2D>(textureName) : Game1.objectSpriteSheet;
+                Texture2D texture = (textureName != null) ? LoadTextureCached(textureName) : Game1.objectSpriteSheet;
                 Rectangle sourceRect = Game1.getSourceRectForStandardTileSheet(texture, resourceClump.parentSheetIndex.Value, 16, 16);
                 sourceRect.Width = resourceClump.width.Value * 16;
                 sourceRect.Height = resourceClump.height.Value * 16;
@@ -116,7 +154,7 @@ namespace LetsMoveIt.TargetData
             {
                 if (!bush.modData.Any())
                 {
-                    Texture2D texture = Game1.content.Load<Texture2D>("TileSheets\\bushes");
+                    Texture2D texture = LoadTextureCached("TileSheets\\bushes");
                     SpriteEffects flipped = bush.flipped.Value ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
                     int tileOffset = (bush.sourceRect.Height / 16 - 1) * -64;
                     spriteBatch.Draw(texture, tile.ToLocal(y: tileOffset), bush.sourceRect.Value, Color.White * 0.6f, 0f, Vector2.Zero, 4f, flipped, 1);
@@ -130,11 +168,12 @@ namespace LetsMoveIt.TargetData
             }
             else if (TargetObject is HoeDirt hoeDirt)
             {
-                Texture2D texture = ((location.Name.Equals("Mountain") || location.Name.Equals("Mine") || (location is MineShaft mineShaft && mineShaft.shouldShowDarkHoeDirt()) || location is VolcanoDungeon) ? Game1.content.Load<Texture2D>("TerrainFeatures\\hoeDirtDark") : Game1.content.Load<Texture2D>("TerrainFeatures\\hoeDirt"));
+                string texKey = (location.Name.Equals("Mountain") || location.Name.Equals("Mine") || (location is MineShaft ms && ms.shouldShowDarkHoeDirt()) || location is VolcanoDungeon) ? "TerrainFeatures\\hoeDirtDark" : "TerrainFeatures\\hoeDirt";
                 if ((location.GetSeason() == Season.Winter && !location.SeedsIgnoreSeasonsHere() && location is not MineShaft) || (location is MineShaft mineShaft2 && mineShaft2.shouldUseSnowTextureHoeDirt()))
                 {
-                    texture = Game1.content.Load<Texture2D>("TerrainFeatures\\hoeDirtSnow");
+                    texKey = "TerrainFeatures\\hoeDirtSnow";
                 }
+                Texture2D texture = LoadTextureCached(texKey);
                 spriteBatch.Draw(texture, tile.ToLocal(), new Rectangle(0, 0, 16, 16), Color.White * 0.5f, 0f, Vector2.Zero, 4f, SpriteEffects.None, 1);
                 if (hoeDirt?.crop is not null)
                 {
