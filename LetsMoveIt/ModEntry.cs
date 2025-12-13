@@ -253,6 +253,10 @@ namespace LetsMoveIt
 
         private void SelectTargetAction(ButtonPressedEventArgs e)
         {
+            // toolbar message and bounds
+            ToolbarMessage = $"{Config.CancelKey} {I18n.Message("Info.Cancel")} | {Config.OverwriteKey} {I18n.Message("Info.Force")} | {Config.RemoveKey} {I18n.Message("Info.Remove")}";
+            Bounds = Game1.smallFont.MeasureString(ToolbarMessage);
+
             Game1.player.canOnlyWalk = true;
             ClearSelection();
             if (Config.MultiSelect)
@@ -379,10 +383,6 @@ namespace LetsMoveIt
 
         private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
         {
-            // setup toolbar message and bounds
-            ToolbarMessage = $"{Config.CancelKey} {I18n.Message("Info.Cancel")} | {Config.OverwriteKey} {I18n.Message("Info.Force")} | {Config.RemoveKey} {I18n.Message("Info.Remove")}";
-            Bounds = Game1.smallFont.MeasureString(ToolbarMessage);
-
             // get Generic Mod Config Menu's API (if it's installed)
             var configMenu = Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
             if (configMenu is null)
