@@ -345,24 +345,63 @@ namespace LetsMoveIt.TargetData
                 TargetObject = null;
                 return;
             }
-            if (location.IsBuildableLocation())
+            if (location.IsBuildableLocation() || overwriteTile)
             {
-                if (location.buildStructure(building, tile - TileOffset, Game1.player, overwriteTile))
+                if (TargetLocation == location)
                 {
-                    if (building is ShippingBin shippingBin)
+                    if (location.buildStructure(building, tile - TileOffset, Game1.player, overwriteTile))
                     {
-                        shippingBin.initLid();
+                        if (building is ShippingBin shippingBin)
+                        {
+                            shippingBin.initLid();
+                        }
+                        if (building is GreenhouseBuilding)
+                        {
+                            Game1.getFarm().greenhouseMoved.Value = true;
+                        }
+                        building.performActionOnBuildingPlacement();
+                        TargetObject = null;
                     }
-                    if (building is GreenhouseBuilding)
+                    else
                     {
-                        Game1.getFarm().greenhouseMoved.Value = true;
+                        Game1.playSound("cancel");
                     }
-                    building.performActionOnBuildingPlacement();
-                    TargetObject = null;
                 }
                 else
                 {
-                    Game1.playSound("cancel");
+                    string indoorName = building.GetIndoorsName() ?? "IsNull";
+                    if (Name == "Farmhouse" || Name == "Cabin" || indoorName.StartsWith("FarmHouse"))
+                        return;
+                    TargetLocation.buildings.Remove(building);
+                    if (location.buildStructure(building, tile - TileOffset, Game1.player, overwriteTile))
+                    {
+                        if (building is ShippingBin shippingBin)
+                        {
+                            shippingBin.initLid();
+                        }
+                        if (building is GreenhouseBuilding)
+                        {
+                            Game1.getFarm().greenhouseMoved.Value = true;
+                        }
+                        if (building.HasIndoors())
+                        {
+                            foreach (Warp warp in building.GetIndoors().warps)
+                            {
+                                if (warp.TargetName == TargetLocation.NameOrUniqueName)
+                                {
+                                    warp.TargetName = location.NameOrUniqueName;
+                                    warp.TargetX = building.humanDoor.X + building.tileX.Value;
+                                    warp.TargetY = building.humanDoor.Y + building.tileY.Value + 1;
+                                }
+                            }
+                        }
+                        building.performActionOnBuildingPlacement();
+                        TargetObject = null;
+                    }
+                    else
+                    {
+                        Game1.playSound("cancel");
+                    }
                 }
             }
         }
