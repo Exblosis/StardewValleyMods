@@ -319,7 +319,7 @@ namespace LetsMoveIt.TargetData
                     {
                         Vector2 buildingTile = new(building.tileX.Value, building.tileY.Value);
                         Target target = new();
-                        target.Set(building.buildingType.Value, building, location, buildingTile, tile - buildingTile);
+                        target.Set(building.buildingType.Value, building, location, buildingTile, Vector2.Zero);
                         targets.Add(target);
                     }
                 }

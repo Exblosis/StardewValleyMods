@@ -253,19 +253,18 @@ namespace LetsMoveIt.TargetData
         
         private void RenderBuilding(SpriteBatch spriteBatch, Building building, GameLocation location, Vector2 tile)
         {
-            Vector2 oldMouse = new((Game1.viewport.X + Game1.getOldMouseX(ui_scale: false)) / 64, (Game1.viewport.Y + Game1.getOldMouseY(ui_scale: false)) / 64);
             for (int y = 0; y < building.tilesHigh.Value; y++)
             {
                 for (int x = 0; x < building.tilesWide.Value; x++)
                 {
                     int redTileIndex = building.getTileSheetIndexForStructurePlacementTile(x, y);
-                    Vector2 buildigTiles = new(oldMouse.X + (float)x, oldMouse.Y + (float)y);
-                    if (!Game1.currentLocation.isBuildable(buildigTiles - TileOffset))
+                    Vector2 buildigTiles = tile + new Vector2(x, y) - TileOffset;
+                    if (!Game1.currentLocation.isBuildable(buildigTiles))
                     {
                         redTileIndex++;
                     }
 
-                    spriteBatch.Draw(Game1.mouseCursors, Game1.GlobalToLocal(Game1.viewport, buildigTiles * 64f) - TileOffset * 64, new Rectangle(194 + redTileIndex * 16, 388, 16, 16), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 0.01f);
+                    spriteBatch.Draw(Game1.mouseCursors, buildigTiles.ToLocal(), new Rectangle(194 + redTileIndex * 16, 388, 16, 16), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 0.01f);
                 }
             }
 
@@ -277,13 +276,13 @@ namespace LetsMoveIt.TargetData
                     int x2 = point.X;
                     int y2 = point.Y;
                     int redTileIndex = building.getTileSheetIndexForStructurePlacementTile(x2, y2);
-                    Vector2 additionalTiles = new(oldMouse.X + (float)x2, oldMouse.Y + (float)y2);
-                    if (!Game1.currentLocation.isBuildable(additionalTiles - TileOffset, onlyNeedsToBePassable2))
+                    Vector2 additionalTiles = tile + new Vector2(x2, y2) - TileOffset;
+                    if (!Game1.currentLocation.isBuildable(additionalTiles, onlyNeedsToBePassable2))
                     {
                         redTileIndex++;
                     }
 
-                    spriteBatch.Draw(Game1.mouseCursors, Game1.GlobalToLocal(Game1.viewport, additionalTiles * 64f) - TileOffset * 64, new Rectangle(194 + redTileIndex * 16, 388, 16, 16), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 0.01f);
+                    spriteBatch.Draw(Game1.mouseCursors, additionalTiles.ToLocal(), new Rectangle(194 + redTileIndex * 16, 388, 16, 16), Color.White, 0f, Vector2.Zero, 4f, SpriteEffects.None, 0.01f);
                 }
             }
         }

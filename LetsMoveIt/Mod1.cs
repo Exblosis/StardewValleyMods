@@ -16,6 +16,13 @@ namespace LetsMoveIt
         {
             return Game1.GlobalToLocal(new Vector2(x, y) + tile * Game1.tileSize);
         }
+        /// <summary>Get the local tile with local offset. Vector2 Extension</summary>
+        /// <param name="tile">Tile</param>
+        /// <param name="offset">Offset</param>
+        public static Vector2 ToLocal(this Vector2 tile, Vector2 offset)
+        {
+            return Game1.GlobalToLocal(offset + tile * Game1.tileSize);
+        }
         /// <summary>Get the local cursor tile with local offset.</summary>
         /// <param name="x">Offset X</param>
         /// <param name="y">Offset Y</param>
