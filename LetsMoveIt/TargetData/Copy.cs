@@ -51,9 +51,8 @@ namespace LetsMoveIt.TargetData
                     case Crop crop:
                         CopyCrop(crop, location, tile);
                         break;
-                    case Building:
-                        Game1.addHUDMessage(new(I18n.Message("NotImplemented"), 2));
-                        Game1.playSound("cancel");
+                    case Building building:
+                        CopyBuilding(building, location, tile, overwriteTile);
                         break;
                     default:
                         Monitor.Log($"Unbekannter Typ: {TargetObject.GetType()}", LogLevel.Warn);
@@ -70,7 +69,7 @@ namespace LetsMoveIt.TargetData
         private void CopyFarmAnimal(FarmAnimal farmAnimal, GameLocation location, Vector2 tile)
         {
             AnimalHouse animalHouse;
-            if (location is AnimalHouse currentHouse && location.Map.Id.Remove(4) == farmAnimal.buildingTypeILiveIn.Value)
+            if (location is AnimalHouse currentHouse && location.Map.Id.Contains(farmAnimal.buildingTypeILiveIn.Value))
             {
                 animalHouse = currentHouse;
             }
@@ -301,6 +300,50 @@ namespace LetsMoveIt.TargetData
                 hoeDirt.crop.updateDrawMath(tile);
             }
             location.playSound("dirtyHit", tile);
+        }
+
+        private void CopyBuilding(Building building, GameLocation location, Vector2 tile, bool overwriteTile)
+        {
+            if (location.IsBuildableLocation() || overwriteTile)
+            {
+                string indoorName = building.GetIndoorsName() ?? "IsNull";
+                if (Name == "Farmhouse" || Name == "Cabin" || indoorName.StartsWith("FarmHouse"))
+                {
+                    //Game1.addHUDMessage(new(I18n.Message("NotImplemented"), 2));
+                    Game1.playSound("cancel");
+                    TargetObject = null;
+                    return;
+                }
+                if (location.buildStructure(building.buildingType.Value, tile - TileOffset, Game1.player, out var buildingCopy, building.magical.Value, overwriteTile))
+                {
+                    buildingCopy.daysOfConstructionLeft.Value = 0;
+                    if (buildingCopy is ShippingBin shippingBin)
+                    {
+                        shippingBin.initLid();
+                    }
+                    if (buildingCopy is GreenhouseBuilding)
+                    {
+                        Game1.getFarm().greenhouseMoved.Value = true;
+                    }
+                    if (buildingCopy.HasIndoors())
+                    {
+                        foreach (Warp warp in buildingCopy.GetIndoors().warps)
+                        {
+                            if (warp.TargetName == TargetLocation.NameOrUniqueName)
+                            {
+                                warp.TargetName = location.NameOrUniqueName;
+                                warp.TargetX = building.humanDoor.X + building.tileX.Value;
+                                warp.TargetY = building.humanDoor.Y + building.tileY.Value + 1;
+                            }
+                        }
+                    }
+                    buildingCopy.performActionOnBuildingPlacement();
+                }
+                else
+                {
+                    Game1.playSound("cancel");
+                }
+            }
         }
     }
 }

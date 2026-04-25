@@ -15,7 +15,7 @@ namespace LetsMoveIt.TargetData
 {
     internal partial class Target
     {
-        private static readonly Dictionary<string, Texture2D> TextureCache = new();
+        private static readonly Dictionary<string, Texture2D> TextureCache = [];
 
         private static Texture2D LoadTextureCached(string assetName)
         {

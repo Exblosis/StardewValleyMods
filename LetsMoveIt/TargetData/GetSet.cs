@@ -184,7 +184,7 @@ namespace LetsMoveIt.TargetData
         {
             try
             {
-                var targets = new List<Target>();
+                List<Target> targets = [];
 
                 // Charaktere (NPCs, Tiere, Spieler) funktioniert nicht bei MultiSelect
                 //if (Config.EnableMoveEntity)
@@ -329,7 +329,7 @@ namespace LetsMoveIt.TargetData
             catch (System.Exception ex)
             {
                 Monitor.Log($"Fehler beim Select: {ex.Message}\n{ex.StackTrace}", LogLevel.Error);
-                return new List<Target>();
+                return [];
             }
         }
 

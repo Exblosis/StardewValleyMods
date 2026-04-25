@@ -21,7 +21,7 @@ namespace LetsMoveIt
         private string ToolbarMessage = string.Empty;
         private Vector2 Bounds;
 
-        private readonly Dictionary<Vector2, List<Target>> MultipleTargets = new();
+        private readonly Dictionary<Vector2, List<Target>> MultipleTargets = [];
         private Target? SingleTarget;
 
         private bool Select = false;
@@ -172,7 +172,7 @@ namespace LetsMoveIt
                             {
                                 if (!MultipleTargets.TryGetValue(tile, out var list))
                                 {
-                                    list = new List<Target>();
+                                    list = [];
                                     MultipleTargets[tile] = list;
                                 }
                                 foreach (var t in targetsOnTile)

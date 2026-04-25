@@ -100,7 +100,7 @@ namespace LetsMoveIt.TargetData
                 }
                 TargetLocation.animals.Remove(farmAnimal.myID.Value);
                 location.animals.TryAdd(farmAnimal.myID.Value, farmAnimal);
-                if (location is AnimalHouse currentHouse && !currentHouse.isFull() && location.Map.Id.Remove(4) == farmAnimal.buildingTypeILiveIn.Value && location.NameOrUniqueName != farmAnimal.home?.GetIndoors().NameOrUniqueName)
+                if (location is AnimalHouse currentHouse && !currentHouse.isFull() && location.Map.Id.Contains(farmAnimal.buildingTypeILiveIn.Value) && location.NameOrUniqueName != farmAnimal.home?.GetIndoors().NameOrUniqueName)
                 {
                     if (farmAnimal.home?.GetIndoors() is AnimalHouse animalHouse)
                     {
@@ -249,13 +249,13 @@ namespace LetsMoveIt.TargetData
                 }
                 location.terrainFeatures.Add(tile, terrainFeature);
 
-                Vector2[] neighbors = new[]
-                {
+                Vector2[] neighbors =
+                [
                     tile + new Vector2(0, 1),
                     tile + new Vector2(1, 0),
                     tile + new Vector2(0, -1),
                     tile + new Vector2(-1, 0)
-                };
+                ];
                 foreach (Vector2 ct in neighbors)
                 {
                     if (location.terrainFeatures.TryGetValue(ct, out var neighbor) && neighbor is HoeDirt hoeDirtNeighbors)

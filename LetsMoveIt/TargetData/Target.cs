@@ -23,7 +23,7 @@ namespace LetsMoveIt.TargetData
         public Vector2 TileOffset { get; private set; }
 
         /// <summary>Relative to Render(tile), used by ResourceClump and TerrainFeature.</summary>
-        private readonly HashSet<Vector2> BoundingBoxTile = new();
+        private readonly HashSet<Vector2> BoundingBoxTile = [];
 
         /// <summary>Create Empty Target</summary>
         public Target() {}
