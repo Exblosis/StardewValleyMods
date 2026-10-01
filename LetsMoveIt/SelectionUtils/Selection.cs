@@ -80,6 +80,10 @@ namespace LetsMoveIt.SelectionUtils
                     }
                 }
             }
+            else if (CurrentSelection.SingleTarget is null)
+            {
+                ClearActiveSelection();
+            }
         }
 
         //private static void LoadBlueprintInfo()
