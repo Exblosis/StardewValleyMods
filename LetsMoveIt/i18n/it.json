@@ -3,6 +3,7 @@
     "config.ModEnabled": "Mod abilitato",
     "config.ModEnabled.Tooltip": "Una volta abilitato, tieni premuto il tasto mod e seleziona un oggetto con il tasto sposta",
     "config.DisableOnEvent": "Disabilita la mod durante un evento.",
+    "config.ModMenuKey": "Apri il menu della mod",
     "config.ModKey": "Chiave mod",
     "config.MoveKey": "Chiave Sposta",
     "config.OverwriteKey": "Forza il Posizionamento",

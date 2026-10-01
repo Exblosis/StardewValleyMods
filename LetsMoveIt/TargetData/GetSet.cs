@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -6,7 +5,7 @@ using StardewValley;
 using StardewValley.Locations;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
-using static StardewValley.Minigames.TargetGame;
+using static LetsMoveIt.ConfigUtils;
 
 namespace LetsMoveIt.TargetData
 {
@@ -57,6 +56,7 @@ namespace LetsMoveIt.TargetData
                     }
                     if (Game1.player.GetBoundingBox().Contains(map))
                     {
+                        //Monitor.Log($"Player Position: {Game1.player.Position / 64} {Game1.player.GetBoundingBox().Center.ToVector2() / 64} {Game1.player.Tile} {Game1.player.GetSpriteWidthForPositioning}", LogLevel.Debug);
                         Game1.player.forceCanMove();
                         target.Set(Game1.player, location, tile);
                         return target;

@@ -1,6 +1,5 @@
 using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
-using StardewValley;
 
 namespace LetsMoveIt
 {
@@ -45,6 +44,7 @@ namespace LetsMoveIt
         public string Sound { get; set; } = "shwip";
 
         //Keybinding
+        public KeybindList ModMenuKey { get; set; } = new(SButton.RightAlt);
         public KeybindList ModKey { get; set; } = new(SButton.LeftAlt);
         public KeybindList MoveKey { get; set; } = new(SButton.MouseLeft);
         public KeybindList OverwriteKey { get; set; } = new(SButton.LeftControl);

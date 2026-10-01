@@ -3,6 +3,7 @@
     "config.ModEnabled": "모드 활성화",
     "config.ModEnabled.Tooltip": "활성화되면 모드 키를 누른 상태에서 이동 키로 대상을 선택하세요.",
     "config.DisableOnEvent": "이벤트 중 모드를 비활성화합니다.",
+    "config.ModMenuKey": "모드 메뉴 열기",
     "config.ModKey": "모드 키",
     "config.MoveKey": "이동 키",
     "config.OverwriteKey": "강제 배치",

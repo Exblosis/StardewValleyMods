@@ -3,6 +3,7 @@
     "config.ModEnabled": "Мод включен",
     "config.ModEnabled.Tooltip": "После включения удерживайте клавишу мода и выберите объект с помощью клавиши перемещения",
     "config.DisableOnEvent": "Отключить мод во время события.",
+    "config.ModMenuKey": "Открыть меню мода",
     "config.ModKey": "Клавиша мода",
     "config.MoveKey": "Клавиша перемещения",
     "config.OverwriteKey": "Принудительное размещение",
