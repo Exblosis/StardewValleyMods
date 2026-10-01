@@ -18,7 +18,7 @@ namespace LetsMoveIt.TargetData
         /// <param name="overwriteTile">To Overwrite existing Object.</param>
         public void MoveTo(GameLocation location, Vector2 tile, bool overwriteTile)
         {
-            if (!Config.ModEnabled)
+            if (!ConfigUtils.Config.ModEnabled)
             {
                 TargetObject = null;
                 return;

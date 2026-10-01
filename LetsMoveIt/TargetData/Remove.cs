@@ -15,7 +15,7 @@ namespace LetsMoveIt.TargetData
         /// <summary>Remove the current target.</summary>
         public void Remove()
         {
-            if (!Config.ModEnabled)
+            if (!ConfigUtils.Config.ModEnabled)
             {
                 TargetObject = null;
                 return;

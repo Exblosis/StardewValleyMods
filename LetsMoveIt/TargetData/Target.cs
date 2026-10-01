@@ -12,7 +12,6 @@ namespace LetsMoveIt.TargetData
 {
     internal partial class Target
     {
-        private static ModConfig Config = null!;
         private static IMonitor Monitor = null!;
 
         public string? Name { get; set; }
@@ -37,9 +36,8 @@ namespace LetsMoveIt.TargetData
         }
 
         /// <summary>Use in ModEntry.Entry() | Only for set values.</summary>
-        public static void Init(ModConfig config, IMonitor monitor)
+        public static void Init(IMonitor monitor)
         {
-            Config = config ?? throw new ArgumentNullException(nameof(config));
             Monitor = monitor ?? throw new ArgumentNullException(nameof(monitor));
         }
 

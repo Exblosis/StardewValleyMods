@@ -3,6 +3,7 @@
     "config.ModEnabled": "Mod Enabled",
     "config.ModEnabled.Tooltip": "Once enabled, hold down the mod key and select an object with the move key",
     "config.DisableOnEvent": "Disable the mod during an event.",
+    "config.ModMenuKey": "Open mod menu",
     "config.ModKey": "Mod Key",
     "config.MoveKey": "Move Key",
     "config.OverwriteKey": "Force placing",

@@ -3,6 +3,7 @@
     "config.ModEnabled": "启用模组",
     "config.ModEnabled.Tooltip": "启用后，按下模组修饰键并用移动按键选择物件",
     "config.DisableOnEvent": "在节日期间禁用模组",
+    "config.ModMenuKey": "打开模组菜单",
     "config.ModKey": "模组修饰键",
     "config.MoveKey": "移动按键",
     "config.OverwriteKey": "强制放置修饰键",
