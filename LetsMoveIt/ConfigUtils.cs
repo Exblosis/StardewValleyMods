@@ -39,6 +39,13 @@ namespace LetsMoveIt
                 getValue: () => Config.DisableOnEvent,
                 setValue: value => Config.DisableOnEvent = value
             );
+            configMenu.AddBoolOption(
+                mod: modManifest,
+                name: () => I18n.Config("ShowBoundingBox"),
+                tooltip: () => I18n.Config("ShowBoundingBox.Tooltip"),
+                getValue: () => Config.ShowBoundingBox,
+                setValue: value => Config.ShowBoundingBox = value
+            );
             configMenu.AddKeybindList(
                 mod: modManifest,
                 name: () => I18n.Config("ModMenuKey"),

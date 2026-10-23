@@ -3,6 +3,8 @@
     "config.ModEnabled": "Mod activé",
     "config.ModEnabled.Tooltip": "Une fois activé, maintenez la touche mod enfoncée et sélectionnez un objet avec la touche de déplacement",
     "config.DisableOnEvent": "Désactiver le mod pendant un événement.",
+    "config.ShowBoundingBox": "Afficher lesboîtes englobantes des entités",
+    "config.ShowBoundingBox.Tooltip": "Affiché lorsque la touche Mod est maintenue, uniquement en mode de sélection simple.",
     "config.ModMenuKey": "Ouvrir le menu du mod",
     "config.ModKey": "Raccourci",
     "config.MoveKey": "Raccourci (déplacer)",

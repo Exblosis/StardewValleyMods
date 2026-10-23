@@ -3,6 +3,8 @@
     "config.ModEnabled": "Мод включен",
     "config.ModEnabled.Tooltip": "После включения удерживайте клавишу мода и выберите объект с помощью клавиши перемещения",
     "config.DisableOnEvent": "Отключить мод во время события.",
+    "config.ShowBoundingBox": "Отображать ограничительные рамки сущностей",
+    "config.ShowBoundingBox.Tooltip": "Отображается при удерживании клавиши мода, только в режиме одиночного выбора.",
     "config.ModMenuKey": "Открыть меню мода",
     "config.ModKey": "Клавиша мода",
     "config.MoveKey": "Клавиша перемещения",

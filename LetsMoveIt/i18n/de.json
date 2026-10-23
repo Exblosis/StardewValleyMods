@@ -3,6 +3,8 @@
     "config.ModEnabled": "Mod Aktivieren",
     "config.ModEnabled.Tooltip": "Sobald aktiviert, halte die Mod-Taste gedrückt und wähle ein Objekt mit der Verschieben-Taste aus.",
     "config.DisableOnEvent": "Deaktiviert die Mod während eines Events.",
+    "config.ShowBoundingBox": "Anzeige der Begrenzungsrahmen von Entitäten",
+    "config.ShowBoundingBox.Tooltip": "Wird angezeigt, wenn die Mod-Taste gedrückt wird, nur im Einzelauswahl Modus.",
     "config.ModMenuKey": "Mod Menü öffnen",
     "config.ModKey": "Mod Taste",
     "config.MoveKey": "Verschieben",

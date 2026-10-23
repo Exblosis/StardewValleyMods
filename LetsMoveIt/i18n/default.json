@@ -3,6 +3,8 @@
     "config.ModEnabled": "Mod Enabled",
     "config.ModEnabled.Tooltip": "Once enabled, hold down the mod key and select an object with the move key",
     "config.DisableOnEvent": "Disable the mod during an event.",
+    "config.ShowBoundingBox": "Display bounding boxes of entities",
+    "config.ShowBoundingBox.Tooltip": "Displayed when the Mod key is held down, only in Single Selection mode.",
     "config.ModMenuKey": "Open mod menu",
     "config.ModKey": "Mod Key",
     "config.MoveKey": "Move Key",

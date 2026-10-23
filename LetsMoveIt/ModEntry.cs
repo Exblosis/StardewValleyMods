@@ -49,7 +49,7 @@ namespace LetsMoveIt
             if (!Config.ModEnabled)
                 return;
 
-            if (Config.ModKey.IsDown() && !Config.MultiSelect && Config.EnableMoveEntity)
+            if (Config.ModKey.IsDown() && !Config.MultiSelect && Config.EnableMoveEntity && Config.ShowBoundingBox)
             {
                 foreach (var c in Game1.currentLocation.characters)
                 {

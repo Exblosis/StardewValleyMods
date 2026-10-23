@@ -3,6 +3,8 @@
     "config.ModEnabled": "Mod abilitato",
     "config.ModEnabled.Tooltip": "Una volta abilitato, tieni premuto il tasto mod e seleziona un oggetto con il tasto sposta",
     "config.DisableOnEvent": "Disabilita la mod durante un evento.",
+    "config.ShowBoundingBox": "Mostra le caselle di delimitazione delle entità",
+    "config.ShowBoundingBox.Tooltip": "Visualizzato quando il tasto Mod è premuto, solo in modalità di selezione singola.",
     "config.ModMenuKey": "Apri il menu della mod",
     "config.ModKey": "Chiave mod",
     "config.MoveKey": "Chiave Sposta",
